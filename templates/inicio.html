@@ -5,7 +5,7 @@
 <div class="cabecalho">
 <div class="pilha-pequena">
 <h1 class="titulo-pagina">Olá, {{ atleta.nome.split(' ')[0] }}</h1>
-<p class="subtitulo">{% if dados %}Ranking ITF {{ genero_rotulo }} de {{ data_ranking }}{% else %}Ranking ITF {{ genero_rotulo }} ainda não baixado{% endif %}</p>
+<p class="subtitulo">{% if dados %}Ranking ITF {{ genero_rotulo }} de {{ data_ranking }} · atualiza sozinho toda segunda{% else %}Ranking ITF {{ genero_rotulo }} ainda não baixado{% endif %}</p>
 </div>
 {% if atleta.admin %}
 <form method="post" action="/ranking/atualizar">
@@ -18,9 +18,12 @@
 {{ c.mensagens() }}
 {% if coleta %}
 {% if coleta.rodando %}{{ c.aguardando('ranking:' ~ atleta.genero, 'Baixando o ranking ' ~ genero_rotulo ~ ' da ITF (há ' ~ coleta_minutos ~ ' min). A página atualiza sozinha.', '/inicio') }}
+{% elif coleta.ok and coleta.resultado == 'em_dia' %}<p class="mensagem mensagem-ok" role="status">O ranking {{ genero_rotulo }} já é o mais novo da ITF.</p>
 {% elif coleta.ok %}<p class="mensagem mensagem-ok" role="status">Ranking {{ genero_rotulo }} atualizado.</p>
 {% else %}<p class="mensagem mensagem-erro" role="alert">O download do ranking falhou{% if coleta.erro %} ({{ coleta.erro }}){% endif %}. Tente de novo em alguns minutos.</p>{% endif %}
 {% endif %}
+{% if semana and semana.rodando %}<p class="mensagem mensagem-info" role="status">Baixando o ranking novo da semana na ITF (automático). Leva alguns minutos.</p>
+{% elif semana and semana.erro %}<p class="mensagem mensagem-erro" role="alert">A atualização automática do ranking falhou ({{ semana.erro }}). Ela tenta de novo sozinha em algumas horas.</p>{% endif %}
 
 <div class="grade">
 {% if resumo %}
@@ -51,7 +54,7 @@
 <section class="cartao">
 <span class="rotulo">Ranking ITF · {{ genero_rotulo }}</span>
 <h2 class="titulo-cartao">Ranking ainda não baixado</h2>
-<p class="subtitulo">{% if atleta.admin %}Use "Atualizar ranking da ITF" acima — leva de 1 a 3 minutos.{% else %}O administrador do app precisa baixar o ranking {{ genero_rotulo }}.{% endif %}</p>
+<p class="subtitulo">{% if atleta.admin %}Use "Atualizar ranking da ITF" acima — leva de 1 a 3 minutos.{% else %}O app baixa o ranking {{ genero_rotulo }} sozinho. Se demorar, avise o administrador.{% endif %}</p>
 </section>
 {% endif %}
 

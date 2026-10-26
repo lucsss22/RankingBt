@@ -24,6 +24,7 @@ Dia a dia:
 """
 
 import collections
+import contextlib
 import datetime
 import hmac
 import ipaddress
@@ -137,7 +138,20 @@ MESES = {
     )
 }
 
-app = FastAPI(title="BT Ranking", docs_url=None, redoc_url=None, openapi_url=None)
+@contextlib.asynccontextmanager
+async def ciclo_de_vida(_app):
+    """Liga o relogio do ranking da semana junto com o servidor (os testes
+    nao passam por aqui)."""
+    parar = threading.Event()
+    if ATUALIZAR_RANKING_SOZINHO:
+        threading.Thread(target=_relogio_do_ranking, args=(parar,), daemon=True,
+                         name="ranking-da-semana").start()
+    yield
+    parar.set()
+
+
+app = FastAPI(title="BT Ranking", docs_url=None, redoc_url=None, openapi_url=None,
+              lifespan=ciclo_de_vida)
 app.mount("/static", StaticFiles(directory=PASTA / "static"), name="static")
 templates = Jinja2Templates(directory=PASTA / "templates")
 TABELA = pontuacao.carregar_tabela()
@@ -190,7 +204,14 @@ def _carregar_ranking(genero: str) -> RankingCarregado | None:
     if guardado and guardado[0] == modificado:
         return guardado[1]
     dados = itf.ler_cache(genero)
-    if not dados or len(dados["jogadores"]) < itf.MIN_RANKING_PLAYERS:
+    valido = bool(dados) and len(dados["jogadores"]) >= itf.MIN_RANKING_PLAYERS
+    # Coleta que parou no meio (ou arquivo ilegivel): segue com o ultimo
+    # ranking completo ate o novo chegar inteiro. A marca do arquivo e
+    # guardada para nao reler os ~2 MB a cada pedido.
+    if guardado and guardado[1].dados.get("completo") and not (valido and dados.get("completo")):
+        _RANKINGS[genero] = (modificado, guardado[1])
+        return guardado[1]
+    if not valido:
         return None
     jogadores = dados["jogadores"]
     por_id: dict[int, dict] = {}
@@ -301,7 +322,7 @@ def iniciar_tarefa(nome: str, funcao, *args) -> bool:
 def _executar_tarefa(nome: str, funcao, args) -> None:
     estado = {"rodando": False, "ok": False}
     try:
-        funcao(*args)
+        estado["resultado"] = funcao(*args)
         estado["ok"] = True
     except Exception as exc:
         # A coleta falha de muitos jeitos (rede, Incapsula, Playwright); quem
@@ -319,10 +340,64 @@ def tarefa_rodando(nome: str) -> bool:
     return bool((_TAREFAS.get(nome) or {}).get("rodando"))
 
 
-def coletar_ranking(genero: str) -> None:
-    jogadores = itf.buscar_ranking_itf(genero)
-    if len(jogadores) < itf.MIN_RANKING_PLAYERS:
-        raise RuntimeError("a ITF devolveu um ranking vazio")
+# ═══════════════════════════════════════════════════════════════════════════════
+# RANKING DA SEMANA (automatico)
+# ═══════════════════════════════════════════════════════════════════════════════
+# A ITF publica o ranking novo toda segunda-feira (a data do ranking e sempre
+# uma segunda). O servidor confere sozinho a partir de segunda de manha e
+# baixa os dois rankings uma vez por semana: quem abrir o app depois ja
+# encontra tudo pronto. Se a ITF ainda nao publicou, tenta de novo mais tarde;
+# se o PC estava desligado na segunda ou terca, atualiza quando ligar.
+HORA_INICIO_SEGUNDA = 10        # a partir das 10h de segunda
+HORAS_ENTRE_TENTATIVAS = 3      # segunda e terca
+HORAS_ENTRE_TENTATIVAS_DEPOIS = 12  # de quarta em diante (semana sem ranking novo)
+MINUTOS_ENTRE_VERIFICACOES = 15
+ATUALIZAR_RANKING_SOZINHO = os.environ.get("BT_ATUALIZAR_RANKING", "1") != "0"
+
+
+def segunda_do_ranking(agora: datetime.datetime) -> datetime.date:
+    """Data do ranking mais novo que ja deveria estar publicado: a segunda
+    desta semana (a partir de HORA_INICIO_SEGUNDA) ou a da semana passada."""
+    segunda = agora.date() - datetime.timedelta(days=agora.weekday())
+    if agora.weekday() == 0 and agora.hour < HORA_INICIO_SEGUNDA:
+        segunda -= datetime.timedelta(weeks=1)
+    return segunda
+
+
+def ranking_atrasado(genero: str, agora: datetime.datetime) -> bool:
+    """Arquivo ausente, incompleto ou com ranking anterior a segunda-feira."""
+    dados = itf.ler_cache(genero)
+    if not dados or not dados.get("completo"):
+        return True
+    dia = dia_do_ranking(dados)
+    return dia is None or dia < segunda_do_ranking(agora)
+
+
+def verificar_ranking_da_semana(agora: datetime.datetime | None = None) -> bool:
+    """O relogio chama a cada MINUTOS_ENTRE_VERIFICACOES. True quando comecou a
+    buscar na ITF."""
+    agora = agora or datetime.datetime.now()
+    generos = tuple(g for g in itf.PLAYER_TYPE_LABELS if ranking_atrasado(g, agora))
+    if not generos:
+        return False
+    intervalo = HORAS_ENTRE_TENTATIVAS if agora.weekday() <= 1 else HORAS_ENTRE_TENTATIVAS_DEPOIS
+    if agora.timestamp() - itf_dados.ultima_tentativa_ranking() < intervalo * 3600:
+        return False
+    # Outra busca na ITF em andamento: confere de novo na proxima volta.
+    if not iniciar_tarefa("ranking:semana", itf_dados.atualizar_rankings, generos):
+        return False
+    itf_dados.marcar_tentativa_ranking(agora.timestamp(), generos)
+    return True
+
+
+def _relogio_do_ranking(parar: threading.Event) -> None:
+    espera = 60   # primeira conferencia logo depois de ligar o servidor
+    while not parar.wait(espera):
+        try:
+            verificar_ranking_da_semana()
+        except Exception as exc:   # o relogio nao pode morrer por um erro
+            print(f"[ranking da semana] {exc}")
+        espera = MINUTOS_ENTRE_VERIFICACOES * 60
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
@@ -660,6 +735,7 @@ def inicio(request: Request, atleta=Depends(exigir_atleta), conn=Depends(banco))
     dados = dados_ranking(atleta.genero)
     preview = pontuacao.rodadas_com_pontos(TABELA, CATEGORIA_PADRAO, "32x32")["principal"][:4]
     coleta = estado_tarefa(f"ranking:{atleta.genero}") if atleta.admin else None
+    semana = estado_tarefa("ranking:semana") if atleta.admin else None
     return pagina(
         request, "inicio.html", atleta,
         secao="inicio",
@@ -670,6 +746,7 @@ def inicio(request: Request, atleta=Depends(exigir_atleta), conn=Depends(banco))
         resultados=atletas.listar_resultados(conn, atleta.id)[:3],
         preview=[{**r, "pct": round(r["pontos"] / preview[0]["pontos"] * 100)} for r in preview],
         coleta=coleta,
+        semana=semana,
         coleta_minutos=int((time.time() - coleta["inicio"]) // 60) if coleta and coleta.get("rodando") else None,
         genero_rotulo=genero_rotulo(atleta.genero),
     )
@@ -680,7 +757,9 @@ def atualizar_ranking(genero: str = Form(""), _=Depends(conferir_csrf),
                       atleta=Depends(exigir_admin)):
     if genero not in itf.PLAYER_TYPE_LABELS:
         raise HTTPException(400, "Ranking inválido.")
-    iniciou = iniciar_tarefa(f"ranking:{genero}", coletar_ranking, genero)
+    # Mesma regra do relogio semanal: so baixa se a ITF publicou ranking novo
+    # (ou se o salvo esta incompleto).
+    iniciou = iniciar_tarefa(f"ranking:{genero}", itf_dados.atualizar_ranking, genero)
     return ir("/inicio?msg=" + ("coleta" if iniciou else "ocupado"))
 
 

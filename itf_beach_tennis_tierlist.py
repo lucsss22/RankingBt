@@ -27,6 +27,7 @@ Uso:
 """
 
 import json
+import os
 import pathlib
 import re
 import sys
@@ -798,10 +799,13 @@ def gravar_cache(player_type_code: str, jogadores: list[dict],
         "completo":    completo,
         "jogadores":   jogadores,
     }
+    # Grava ao lado e troca de uma vez: o app web le este arquivo a qualquer
+    # momento e nunca pode pegar o JSON pela metade.
+    caminho = arquivo_cache(player_type_code)
+    temporario = caminho.with_suffix(".tmp")
     try:
-        arquivo_cache(player_type_code).write_text(
-            json.dumps(payload, ensure_ascii=False), encoding="utf-8"
-        )
+        temporario.write_text(json.dumps(payload, ensure_ascii=False), encoding="utf-8")
+        os.replace(temporario, caminho)
     except Exception as exc:
         print(cor(f"  ⚠ Nao consegui gravar o cache: {exc}", "yellow"))
 

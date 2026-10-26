@@ -295,3 +295,55 @@ def atualizar_atividade(player_id: int, genero: str, tabela: dict,
         ]
         for chave in pendentes[:MAX_CHAVES_POR_ATUALIZACAO]:
             baixar_chave(coletor, chave)
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+# RANKING DA SEMANA
+# ═══════════════════════════════════════════════════════════════════════════════
+# A ITF publica um ranking por semana, com data de segunda-feira. Conferir a
+# data pede so a primeira pagina; o ranking inteiro (~35 paginas por genero) so
+# e baixado quando ela mudou. O arquivo continua o da tierlist original
+# (ranking_itf_<genero>.json), que o app de terminal tambem usa.
+ARQUIVO_AGENDA_RANKING = PASTA_CACHE / "agenda_ranking.json"
+
+
+def data_do_ranking_na_itf(coletor: ColetorITF, genero: str) -> str | None:
+    """Data do ranking que a ITF mostra agora, no formato salvo ('19 October 2026')."""
+    return itf.extrair_rank_date(coletor.buscar(itf.RANKING_API_URL.format(player_type=genero, take=10, skip=0)))
+
+
+def atualizar_ranking(genero: str) -> str:
+    """Baixa o ranking de `genero` se a ITF publicou um novo ou se o salvo
+    ficou incompleto. Devolve "em_dia" ou "baixado". Se a ITF parar no meio,
+    o que veio fica salvo, a proxima tentativa continua dali e aqui sai erro."""
+    with ColetorITF() as coletor:
+        salvo = itf.ler_cache(genero) or {}
+        publicado = data_do_ranking_na_itf(coletor, genero)
+        if publicado and salvo.get("completo") and salvo.get("rank_date") == publicado:
+            return "em_dia"
+        jogadores = itf.coletar_ranking(coletor.sessao, genero)
+    if len(jogadores) < itf.MIN_RANKING_PLAYERS or not (itf.ler_cache(genero) or {}).get("completo"):
+        raise ErroColetaITF(f"a ITF parou no meio ({len(jogadores)} jogadores); a próxima tentativa continua dali")
+    return "baixado"
+
+
+def atualizar_rankings(generos: tuple[str, ...] = tuple(itf.PLAYER_TYPE_LABELS)) -> dict[str, str]:
+    """Cada genero com um navegador proprio (cada um tem seu limite de sessoes
+    novas); um que falhe nao impede o outro."""
+    feito, erros = {}, []
+    for genero in generos:
+        try:
+            feito[genero] = atualizar_ranking(genero)
+        except Exception as exc:
+            erros.append(f"{itf.PLAYER_TYPE_LABELS.get(genero, genero)}: {exc}")
+    if erros:
+        raise ErroColetaITF("; ".join(erros))
+    return feito
+
+
+def ultima_tentativa_ranking() -> float:
+    return (_ler(ARQUIVO_AGENDA_RANKING) or {}).get("tentativa", 0)
+
+
+def marcar_tentativa_ranking(quando: float, generos) -> None:
+    _gravar(ARQUIVO_AGENDA_RANKING, {"tentativa": quando, "generos": list(generos)})

@@ -7,6 +7,16 @@
 
 Cópia do código anterior: `backups/2026-10-25_antes_das_4_funcionalidades/`.
 
+## Atualização (25/10, 23h50): ranking atualizado sozinho toda segunda
+- **Como funciona:** o servidor confere a cada 15 minutos. A partir das 10h de segunda, se o ranking salvo for anterior à segunda-feira, ele pergunta à ITF a data do ranking publicado, lendo só a primeira página, o que é leve. Se for nova, baixa o masculino e o feminino e grava. Quem abrir o app depois já encontra o ranking pronto.
+- **A ITF ainda não publicou?** Tenta de novo a cada 3 horas na segunda e na terça, e a cada 12 horas de quarta em diante.
+- **PC desligado na segunda?** Atualiza assim que o servidor ligar, a primeira conferência é 1 minuto depois.
+- **Nunca mostra ranking pela metade:** a gravação passou a ser atômica (arquivo temporário e troca). Se a ITF bloquear no meio da coleta, o app continua mostrando o último ranking completo, e a próxima tentativa continua de onde parou.
+- **O botão "Atualizar ranking da ITF"** do administrador usa a mesma regra: confere a data e só baixa se houver ranking novo. Antes ele reaproveitava o arquivo por 24 horas e podia não baixar o ranking de segunda. Quando já está em dia, avisa "já é o mais novo da ITF".
+- **No Início** aparece "atualiza sozinho toda segunda". O administrador vê quando a atualização automática está rodando, ou se falhou.
+- **Para desligar:** `BT_ATUALIZAR_RANKING=0` antes de iniciar o servidor.
+- **Testes:** `teste_ranking_semana.py`, com 35 verificações (quando busca, intervalos, só o gênero atrasado, ITF sem ranking novo, coleta pela metade, botão do administrador, relógio ligando e desligando com o servidor). No total, **370 verificações, 0 falhas**.
+
 ## Atualização (25/10, fim da noite): segurança, otimização e GitHub
 ### Segurança (revisão do app inteiro)
 **O que já estava bem e foi conferido:**

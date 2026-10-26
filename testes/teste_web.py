@@ -142,10 +142,13 @@ def falsa_chave(chave):
         "coletado_em": time.time(), "publicada": True,
         "eventos": {"M": {"principal": resultados_itf.estrutura_do_drawsheet(drawsheet)}}})
 
-def falsa_atividade(player_id, genero, tabela, data_ref):
+def falsa_atividade(player_id, genero, tabela, data_ref, ao_salvar_atividade=None):
     chamadas.append(f"atividade:{player_id}")
     itens = json.load(open(DADOS_ITF / f"atividade_{player_id}.json", encoding="utf-8"))["items"]
     itf_dados._gravar(itf_dados._arquivo_atividade(player_id), {"coletado_em": time.time(), "itens": itens})
+    if ao_salvar_atividade:
+        ao_salvar_atividade()
+    return 0
 
 web.itf_dados.atualizar_calendario = falso_calendario
 web.itf_dados.atualizar_chave = falsa_chave
@@ -332,16 +335,24 @@ falsa_atividade(800767267, "M", None, None)
 import resultados_itf, pontuacao
 lucas_rank = next(j for j in ranking if j["playerId"] == 800767267)
 itens = json.load(open(DADOS_ITF / "atividade_800767267.json", encoding="utf-8"))["items"]
-esperado = resultados_itf.marcar_contando(
-    resultados_itf.resultados_do_atleta(itens, pontuacao.carregar_tabela(), itf_dados.calendario_por_chave()),
-    web.dia_do_ranking(web.dados_ranking("M")), 10)["soma"]
+data_ranking_salvo = web.dia_do_ranking(web.dados_ranking("M"))
+lista_lucas = resultados_itf.resultados_do_atleta(itens, pontuacao.carregar_tabela(), itf_dados.calendario_por_chave())
+esperado = resultados_itf.marcar_contando(lista_lucas, data_ranking_salvo, 10)["soma"]
+# O ranking salvo muda toda segunda: o que ainda "entra no ranking" depende dele.
+ainda_entram = sorted(r.entrada for r in lista_lucas if r.entrada and r.entrada > data_ranking_salvo
+                      and r.situacao == "ok")
 r = lucas_cli.get("/perfil")
 if esperado == lucas_rank["points"]:
     check(f"Confere com o oficial ({lucas_rank['points']} pts)" in r.text, f"resultados da ITF conferem com o oficial ({esperado} pts)")
 else:
     check(f"{esperado} pts" in r.text and "Oficial:" in r.text, f"ranking salvo mudou: mostra {esperado} e a diferença")
 check("BT50 Curitiba" in r.text and "Oitavas de final" in r.text and "BT10 Curitiba 1" in r.text, "torneio, rodada e parceiro do Lucas")
-check("entra no ranking em 26/10" in r.text, "torneio que terminou depois do ranking salvo: mostra quando entra")
+if ainda_entram:
+    check(f"entra no ranking em {ainda_entram[0]:%d/%m}" in r.text,
+          f"torneio que terminou depois do ranking salvo: mostra quando entra ({ainda_entram[0]:%d/%m})")
+else:
+    check("entra no ranking em" not in r.text,
+          f"ranking salvo de {data_ranking_salvo:%d/%m} já inclui todos os torneios: nenhum 'entra no ranking'")
 
 print("== meta ==")
 r = lucas_cli.get("/meta")

@@ -21,10 +21,13 @@
 {{ c.aguardando(tarefa_itf, 'Buscando seus torneios na ITF… pode levar alguns minutos (o site da ITF às vezes segura as buscas). A página atualiza sozinha.', '/perfil#resultados-itf') }}
 {% else %}
 {% if erro_itf %}<p class="mensagem mensagem-erro" role="alert">A última busca falhou: {{ erro_itf }}</p>{% endif %}
+{% if conferindo_chaves %}<p class="legenda" role="status">Seus torneios já estão abaixo. O app ainda confere na ITF o tamanho de algumas chaves (só muda os pontos de quem caiu na 1ª rodada); recarregue daqui a pouco para ver o ajuste.</p>
+{% else %}
 <form method="post" action="/perfil/resultados/atualizar">
 <input type="hidden" name="csrf" value="{{ csrf }}">
 <button type="submit" class="botao botao-secundario botao-alinhado">{{ c.icone('atualizar', 18) }}{{ 'Atualizar meus resultados' if itf else 'Buscar meus resultados na ITF' }}</button>
 </form>
+{% endif %}
 {% endif %}
 
 {% if itf %}

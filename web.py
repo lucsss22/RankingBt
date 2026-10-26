@@ -332,6 +332,27 @@ def _executar_tarefa(nome: str, funcao, args) -> None:
     _TAREFAS[nome] = estado
 
 
+def buscar_resultados_itf(player_id: int, genero: str, data_ref: datetime.date | None) -> int:
+    """Tarefa "atividade:<id>". Assim que os torneios do atleta chegam ela ja
+    aparece como terminada (a pagina dele recarrega e mostra os resultados), e
+    as chaves seguem como "chaves:<id>", que continua segurando a vez das
+    buscas na ITF."""
+    nome, nome_chaves = f"atividade:{player_id}", f"chaves:{player_id}"
+
+    def atividade_salva():
+        with _TRAVA_TAREFAS:
+            _TAREFAS[nome_chaves] = {"rodando": True, "inicio": time.time()}
+            _TAREFAS[nome] = {"rodando": False, "ok": True, "fim": time.time()}
+
+    try:
+        return itf_dados.atualizar_atividade(player_id, genero, TABELA, data_ref,
+                                             ao_salvar_atividade=atividade_salva)
+    finally:
+        with _TRAVA_TAREFAS:
+            if nome_chaves in _TAREFAS:
+                _TAREFAS[nome_chaves] = {"rodando": False, "fim": time.time()}
+
+
 def estado_tarefa(nome: str) -> dict | None:
     return _TAREFAS.get(nome)
 
@@ -1177,6 +1198,7 @@ def pagina_perfil(request: Request, atleta: atletas.Atleta, status_code: int = 2
         itf=resultados_itf_do_atleta(atleta, ranking),
         tarefa_itf=tarefa,
         buscando_itf=bool(tarefa and tarefa_rodando(tarefa)),
+        conferindo_chaves=bool(tarefa and tarefa_rodando(f"chaves:{atleta.itf_player_id}")),
         erro_itf=(estado_tarefa(tarefa) or {}).get("erro") if tarefa else None,
         melhores=MELHORES,
         data_ranking=data_do_ranking(ranking),
@@ -1214,8 +1236,8 @@ def perfil_atualizar_resultados(_=Depends(conferir_csrf), atleta=Depends(exigir_
         return ir("/perfil?msg=recente#resultados-itf")
     dados = dados_ranking(atleta.genero)
     iniciou = iniciar_tarefa(
-        f"atividade:{atleta.itf_player_id}", itf_dados.atualizar_atividade,
-        atleta.itf_player_id, atleta.genero, TABELA, dia_do_ranking(dados),
+        f"atividade:{atleta.itf_player_id}", buscar_resultados_itf,
+        atleta.itf_player_id, atleta.genero, dia_do_ranking(dados),
     )
     return ir("/perfil?aguardar=1#resultados-itf" if iniciou else "/perfil?msg=ocupado#resultados-itf")
 

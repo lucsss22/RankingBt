@@ -7,6 +7,13 @@
 
 Cópia do código anterior: `backups/2026-10-25_antes_das_4_funcionalidades/`.
 
+## Atualização (26/10): "Atualizar meus resultados" não segura mais a tela
+- **O problema:** a busca tinha duas etapas. Os torneios do atleta chegaram às 13:40:44, mas a tela continuou em "buscando" até 13:47:46, enquanto o app buscava o tamanho de 8 chaves com a ITF bloqueando várias vezes.
+- **Agora:** assim que os torneios chegam, a tela libera e mostra os resultados. O tamanho das chaves é só um ajuste fino, que muda apenas os pontos de quem caiu na 1ª rodada. Ele continua em segundo plano, com um aviso discreto no Perfil.
+- **Limite para as chaves:** no máximo 90 segundos e 2 sessões novas do navegador. O que faltar fica para a próxima atualização. Antes, uma busca podia prender a fila de buscas na ITF por 7 minutos ou mais.
+- **O ranking semanal funcionou na primeira segunda:** o de 26/10 foi baixado sozinho às 13:15 (masculino, 3.276) e às 13:17 (feminino, 2.197).
+- **Testes:** `teste_buscas_itf.py`, com 13 verificações. Um teste antigo dependia do ranking ser o de 19/10 e agora calcula o esperado a partir dos dados. No total, **383 verificações, 0 falhas**.
+
 ## Atualização (25/10, 23h50): ranking atualizado sozinho toda segunda
 - **Como funciona:** o servidor confere a cada 15 minutos. A partir das 10h de segunda, se o ranking salvo for anterior à segunda-feira, ele pergunta à ITF a data do ranking publicado, lendo só a primeira página, o que é leve. Se for nova, baixa o masculino e o feminino e grava. Quem abrir o app depois já encontra o ranking pronto.
 - **A ITF ainda não publicou?** Tenta de novo a cada 3 horas na segunda e na terça, e a cada 12 horas de quarta em diante.

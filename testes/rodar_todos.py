@@ -20,6 +20,7 @@ ORDEM = [
     "teste_meta.py",            # meta de ranking
     "teste_web.py",             # app web de ponta a ponta
     "teste_ranking_semana.py",  # atualizacao automatica do ranking toda segunda
+    "teste_buscas_itf.py",      # resultados do atleta: torneios primeiro, chaves com limite
     "teste_indice.py",          # indice de nomes = busca original (o mais lento)
 ]
 

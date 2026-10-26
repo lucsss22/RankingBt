@@ -57,6 +57,12 @@ DIAS_FUTURO = 120
 HORAS_CALENDARIO = 24          # depois disso o calendario e baixado de novo
 HORAS_CHAVE_NAO_PUBLICADA = 6  # chave ainda nao saiu: tenta de novo depois
 MAX_CHAVES_POR_ATUALIZACAO = 8 # chaves buscadas junto com a atividade
+# As chaves so refinam os pontos de quem caiu na 1a rodada. Quando o Incapsula
+# bloqueia, cada chave pode levar minutos (medido: 8 chaves em 7 min), e isso
+# prende a fila de buscas na ITF. Depois da atividade, as chaves tem tempo e
+# sessoes novas limitados; o que faltar fica para a proxima atualizacao.
+SEGUNDOS_PARA_CHAVES = 90
+ROTACOES_PARA_CHAVES = 2
 
 
 class ErroColetaITF(RuntimeError):
@@ -274,15 +280,20 @@ def atualizar_chave(chave_torneio: str) -> None:
 
 
 def atualizar_atividade(player_id: int, genero: str, tabela: dict,
-                        data_ref: datetime.date | None = None) -> None:
+                        data_ref: datetime.date | None = None, ao_salvar_atividade=None) -> int:
     """Atividade do atleta + calendario (para a categoria) + as chaves dos
-    torneios em que o tamanho muda os pontos (ate MAX_CHAVES_POR_ATUALIZACAO)."""
+    torneios em que o tamanho muda os pontos (ate MAX_CHAVES_POR_ATUALIZACAO,
+    dentro de SEGUNDOS_PARA_CHAVES). `ao_salvar_atividade` e chamado assim que
+    os torneios estao gravados: dali em diante o atleta ja pode ve-los.
+    Devolve quantas chaves ficaram para a proxima vez."""
     data_ref = data_ref or datetime.date.today()
     with ColetorITF() as coletor:
         calendario = ler_calendario()
         if not calendario_fresco(calendario):
             calendario = baixar_calendario(coletor)
         atividade = baixar_atividade(coletor, player_id)
+        if ao_salvar_atividade:
+            ao_salvar_atividade()
 
         resultados = resultados_itf.resultados_do_atleta(
             atividade["itens"], tabela, calendario_por_chave(calendario), {}, genero
@@ -293,8 +304,19 @@ def atualizar_atividade(player_id: int, genero: str, tabela: dict,
             if r.presumido and r.chave_torneio and r.fim and r.fim >= inicio_janela
             and precisa_buscar_chave(r.chave_torneio)
         ]
+        prazo = time.monotonic() + SEGUNDOS_PARA_CHAVES
+        sessao = coletor.sessao
+        sessao.rotacoes = max(sessao.rotacoes, itf.MAX_ROTACOES - ROTACOES_PARA_CHAVES)
+        feitas = 0
         for chave in pendentes[:MAX_CHAVES_POR_ATUALIZACAO]:
-            baixar_chave(coletor, chave)
+            if time.monotonic() > prazo:
+                break
+            try:
+                baixar_chave(coletor, chave)
+            except ErroColetaITF:   # bloqueado e sem sessoes novas: fica para depois
+                break
+            feitas += 1
+        return len(pendentes) - feitas
 
 
 # ═══════════════════════════════════════════════════════════════════════════════

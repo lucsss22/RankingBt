@@ -1,0 +1,79 @@
+{# Pecas repetidas entre as paginas. Importar com: {% import "_componentes.html" as c with context %} #}
+
+{% macro icone(nome, tamanho=22) -%}
+<svg class="icone" width="{{ tamanho }}" height="{{ tamanho }}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+{%- if nome == 'inicio' %}<path d="M3 11l9-7 9 7"/><path d="M5 10v10h14V10"/>
+{%- elif nome == 'pontos' %}<path d="M4 6h16M4 12h16M4 18h10"/>
+{%- elif nome == 'estimar' %}<path d="M3 17l6-6 4 4 8-8"/><path d="M15 7h6v6"/>
+{%- elif nome == 'tierlist' %}<path d="M12 3l9 5-9 5-9-5 9-5z"/><path d="M3 13l9 5 9-5"/>
+{%- elif nome == 'resultados' %}<rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/>
+{%- elif nome == 'perfil' %}<circle cx="12" cy="8" r="4"/><path d="M4 21c1.5-4 4.5-6 8-6s6.5 2 8 6"/>
+{%- elif nome == 'convites' %}<rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 7l9 6 9-6"/>
+{%- elif nome == 'seta' %}<path d="M5 12h14M13 6l6 6-6 6"/>
+{%- elif nome == 'sobe' %}<path d="M12 19V5M6 11l6-6 6 6"/>
+{%- elif nome == 'desce' %}<path d="M12 5v14M6 13l6 6 6-6"/>
+{%- elif nome == 'info' %}<circle cx="12" cy="12" r="9"/><path d="M12 11v6M12 7.5v.5"/>
+{%- elif nome == 'lua' %}<path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5z"/>
+{%- elif nome == 'sol' %}<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/>
+{%- elif nome == 'atualizar' %}<path d="M20 11a8 8 0 1 0-2.3 5.7"/><path d="M20 4v7h-7"/>
+{%- elif nome == 'sair' %}<path d="M15 4h4v16h-4"/><path d="M10 8l-4 4 4 4M6 12h10"/>
+{%- elif nome == 'lixo' %}<path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3"/>
+{%- elif nome == 'meta' %}<circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1"/>
+{%- elif nome == 'busca' %}<circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/>
+{%- elif nome == 'mais' %}<path d="M12 5v14M5 12h14"/>
+{%- elif nome == 'ok' %}<path d="M5 12l5 5L20 7"/>
+{%- elif nome == 'alerta' %}<path d="M12 3l10 18H2L12 3z"/><path d="M12 10v5M12 18v.5"/>
+{%- endif %}
+</svg>
+{%- endmacro %}
+
+{% macro marca(tamanho=36) -%}
+<svg class="marca-simbolo" width="{{ tamanho }}" height="{{ tamanho }}" viewBox="0 0 40 40" aria-hidden="true"><circle cx="20" cy="20" r="19" fill="var(--marca-circulo)"/><path d="M4 25c5-4 9-4 14 0s9 4 18 0" stroke="var(--marca-onda)" stroke-width="3" fill="none" stroke-linecap="round"/><circle cx="27" cy="13" r="4" fill="var(--marca-sol)"/></svg>
+{%- endmacro %}
+
+{# Sem JavaScript o botao envia o formulario; com JavaScript (app.js) o tema
+   troca na hora, sem recarregar. #}
+{% macro botao_tema(com_texto=false) -%}
+<form method="post" action="/tema" class="form-tema">
+<input type="hidden" name="tema" value="{{ 'a' if tema == 'b' else 'b' }}">
+<button type="submit" class="{{ 'botao botao-fantasma' if com_texto else 'botao-icone' }}" data-alternar-tema aria-pressed="{{ 'true' if tema == 'b' else 'false' }}" aria-label="Tema escuro (Quadra Noturna)">
+<span class="icone-tema-lua">{{ icone('lua') }}</span><span class="icone-tema-sol">{{ icone('sol') }}</span>
+{%- if com_texto %}<span class="so-tema-a">Quadra Noturna</span><span class="so-tema-b">Areia &amp; Oceano</span>{% endif %}
+</button>
+</form>
+{%- endmacro %}
+
+{# `atributos` vai cru para o HTML: so texto fixo dos templates, nunca dado do usuario. #}
+{% macro campo(nome, rotulo, valor='', tipo='text', erros={}, ajuda='', obrigatorio=false, autocomplete='', atributos='') -%}
+<div class="campo">
+<label for="{{ nome }}">{{ rotulo }}</label>
+<input id="{{ nome }}" name="{{ nome }}" type="{{ tipo }}" value="{{ '' if valor is none else valor }}"{% if obrigatorio %} required{% endif %}{% if autocomplete %} autocomplete="{{ autocomplete }}"{% endif %}{% if erros.get(nome) %} aria-invalid="true" aria-describedby="{{ nome }}-erro"{% elif ajuda %} aria-describedby="{{ nome }}-ajuda"{% endif %} {{ atributos | safe }}>
+{% if erros.get(nome) %}<span class="erro-campo" id="{{ nome }}-erro">{{ erros[nome] }}</span>{% elif ajuda %}<span class="ajuda" id="{{ nome }}-ajuda">{{ ajuda }}</span>{% endif %}
+</div>
+{%- endmacro %}
+
+{% macro campo_genero(valor, erros={}, generos={'M': 'masculino', 'W': 'feminino'}) -%}
+<div class="campo">
+<label for="genero">Ranking</label>
+<select id="genero" name="genero" required{% if erros.get('genero') %} aria-invalid="true" aria-describedby="genero-erro"{% endif %}>
+<option value="" {% if not valor %}selected{% endif %} disabled>Escolha</option>
+{% for codigo, rotulo in generos.items() %}<option value="{{ codigo }}" {% if valor == codigo %}selected{% endif %}>{{ rotulo | capitalize }}</option>{% endfor %}
+</select>
+{% if erros.get('genero') %}<span class="erro-campo" id="genero-erro">{{ erros['genero'] }}</span>{% endif %}
+</div>
+{%- endmacro %}
+
+{% macro mensagens(erro=none) -%}
+{% if mensagem %}<p class="mensagem mensagem-ok" role="status">{{ mensagem }}</p>{% endif %}
+{% if erro %}<p class="mensagem mensagem-erro" role="alert">{{ erro }}</p>{% endif %}
+{%- endmacro %}
+
+{% macro rank(valor) -%}{{ '#' ~ valor if valor else 'sem ranking' }}{%- endmacro %}
+
+{# Aviso de busca na ITF em andamento: app.js consulta /tarefa e recarrega
+   a pagina sozinho quando termina. #}
+{% macro aguardando(tarefa, texto, voltar) -%}
+<p class="mensagem mensagem-info aguardando" role="status" data-aguardar="{{ tarefa }}" data-voltar="{{ voltar }}"><span class="girando" aria-hidden="true"></span>{{ texto }}</p>
+{%- endmacro %}
+
+{% macro data(valor) -%}{{ valor.strftime('%d/%m/%Y') if valor else '—' }}{%- endmacro %}

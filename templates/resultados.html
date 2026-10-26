@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+{% import "_componentes.html" as c with context %}
+{% block titulo %}Meus resultados{% endblock %}
+{% block conteudo %}
+<div class="pilha-pequena">
+<h1 class="titulo-pagina">Meus resultados</h1>
+<p class="subtitulo">Torneios que você salvou ao estimar o ranking.</p>
+</div>
+{{ c.mensagens() }}
+
+{% if resultados %}
+<section class="cartao">
+<div class="cartao-topo">
+<span class="rotulo">Soma dos {{ melhores }} melhores · {{ semanas }} semanas</span>
+</div>
+<span class="numero numero-grande">{{ soma }} pts</span>
+<p class="legenda">Só com o que está salvo aqui — não é o ranking oficial, que conta também torneios que você não salvou.</p>
+</section>
+
+<section class="cartao">
+<ul class="lista-resultados lista-resultados-completa">
+{% for r in resultados %}
+<li>
+<div class="pilha-mini">
+<span class="resultado-nome">{{ r.torneio }}</span>
+<span class="legenda">{{ r.data_txt }}{% if r.categoria %} · {{ r.categoria }}{% endif %}{% if r.rodada %} · {{ r.rodada }}{% endif %}{% if r.origem == 'pontos' %} · pontos informados{% endif %}</span>
+</div>
+<span class="numero">+{{ r.pontos }}</span>
+<form method="post" action="/resultados/{{ r.id }}/remover">
+<input type="hidden" name="csrf" value="{{ csrf }}">
+<button type="submit" class="botao-icone botao-icone-discreto" aria-label="Remover {{ r.torneio }}">{{ c.icone('lixo', 20) }}</button>
+</form>
+</li>
+{% endfor %}
+</ul>
+</section>
+{% else %}
+<p class="vazio">Nenhum resultado salvo ainda. Use <a href="/estimar">Estimar meu ranking</a> e salve o torneio no final.</p>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,39 @@
+# ── Contas e segredos: nunca vao para o GitHub ──────────────────────────────
+# Banco com e-mails, hashes de senha, sessoes e convites dos atletas.
+atletas.db
+*.db
+*.db-journal
+*.db-wal
+*.db-shm
+*.sqlite
+# Chave que assina os formularios (CSRF). Quem tiver ela forja formularios.
+segredo.key
+*.key
+*.pem
+.env
+.env.*
+# Configuracao do ngrok (tem o authtoken), caso alguem copie para ca.
+ngrok.yml
+
+# ── Dados baixados da ITF (o app baixa de novo) ─────────────────────────────
+cache_itf/
+ranking_itf_*.json
+tierlist_resultado.json
+
+# ── Copias antigas ───────────────────────────────────────────────────────────
+backups/
+*.bak
+*.bak-*
+
+# ── Python e sistema ─────────────────────────────────────────────────────────
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+*.tmp
+*.log
+.vscode/
+.idea/
+Thumbs.db
+desktop.ini
+.DS_Store

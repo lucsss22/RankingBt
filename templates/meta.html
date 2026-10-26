@@ -1,0 +1,110 @@
+{% extends "base.html" %}
+{% import "_componentes.html" as c with context %}
+{% block titulo %}Meta de ranking{% endblock %}
+{% block conteudo %}
+<div class="pilha-pequena">
+<h1 class="titulo-pagina">Meta de ranking</h1>
+<p class="subtitulo">{% if dados %}Base: ranking {{ genero_rotulo }} de {{ data_ranking }}{% else %}Ranking {{ genero_rotulo }} ainda não baixado{% endif %}</p>
+</div>
+{{ c.mensagens(erro) }}
+
+{% if not dados %}
+<p class="mensagem mensagem-info">Sem o ranking {{ genero_rotulo }} não dá para calcular a meta. {% if atleta.admin %}Atualize o ranking na <a href="/inicio">tela inicial</a>.{% else %}Peça ao administrador para baixar o ranking.{% endif %}</p>
+{% else %}
+{% if not resumo %}<p class="mensagem mensagem-info">Sua conta não está vinculada ao ranking: considero 0 pontos hoje. <a href="/perfil/itf">Procurar meu nome</a></p>{% endif %}
+
+<div class="grade grade-larga grade-topo">
+<form method="get" action="/meta" class="cartao form">
+<h2 class="titulo-secao">Onde você quer chegar?</h2>
+{% if resumo %}<p class="legenda">Hoje: {{ c.rank(resumo.rank) }} · {{ resumo.pontos }} pts</p>{% endif %}
+<div class="form-linha">
+{{ c.campo('alvo', 'Posição no ranking', alvo, tipo='number', obrigatorio=true, atributos='inputmode="numeric" min="1" placeholder="Ex: 500"') }}
+{% if paises %}
+<div class="campo">
+<label for="pais">Torneios de</label>
+<select id="pais" name="pais">
+<option value=""{% if not pais %} selected{% endif %}>Todos os países</option>
+{% for p in paises %}<option value="{{ p }}"{% if p == pais %} selected{% endif %}>{{ p }}</option>{% endfor %}
+</select>
+</div>
+{% endif %}
+</div>
+<button type="submit" class="botao botao-primario botao-alinhado">{{ c.icone('meta', 18) }}Calcular meta</button>
+</form>
+
+{% if meta %}
+<section class="cartao" aria-label="Resumo da meta">
+{% if meta.ja_alcancado %}
+<p class="mensagem mensagem-ok">Você já está em {{ c.rank(resumo.rank) }} — dentro da meta de #{{ meta.alvo }}.</p>
+{% endif %}
+<div class="comparacao">
+<div class="pilha-mini"><span class="rotulo">Precisa ter</span><span class="numero numero-grande">{{ meta.necessario }}</span><span class="legenda">pts para #{{ meta.alvo }}{% if meta.no_alvo %} (hoje: {{ meta.no_alvo }}){% endif %}</span></div>
+<span class="seta-destaque">{{ c.icone('seta', 28) }}</span>
+<div class="pilha-mini"><span class="rotulo">Faltam</span><span class="numero numero-grande destaque">{{ meta.faltam }}</span><span class="legenda">pts até {{ c.data(meta.data_alvo) }}</span></div>
+</div>
+<p class="legenda">Seu total hoje: {{ meta.total_hoje }} pts. Em {{ c.data(meta.data_alvo) }}: {{ meta.total_alvo }} pts{% if meta.vencendo %}, porque vencem:{% else %}.{% endif %}</p>
+{% if meta.vencendo %}
+<ul class="lista-simples">
+{% for r in meta.vencendo %}<li>{{ r.torneio }} · {{ r.pontos }} pts · vence {{ c.data(r.vence) }}</li>{% endfor %}
+</ul>
+{% endif %}
+</section>
+{% endif %}
+</div>
+
+{% if meta %}
+<div class="aviso">{{ c.icone('info', 20) }}<div class="pilha-mini">
+<p>Considera os pontos dos outros atletas como estão hoje e só os {{ melhores }} melhores resultados de cada um.</p>
+{% if meta.com_itf and not meta.confere %}<p>Seus resultados da ITF não fecham com o total oficial (veja no Perfil); a meta pode variar.</p>{% endif %}
+{% if not meta.com_itf %}<p>Sem seus resultados da ITF a meta não sabe o que vence nem qual resultado seria descartado{% if meta.conservador %} — usei a hipótese mais pessimista{% endif %}. <a href="/perfil#resultados-itf">Buscar meus resultados</a></p>{% endif %}
+</div></div>
+
+<div class="grade grade-larga grade-topo">
+<section class="cartao">
+<div class="cartao-topo"><h2 class="titulo-secao">Por categoria</h2><span class="legenda">até {{ c.data(meta.data_alvo) }}</span></div>
+<ul class="lista-meta">
+{% for linha in meta.por_categoria %}
+<li>
+<span class="pill">{{ linha.categoria }}</span>
+{% if meta.faltam == 0 %}<span class="legenda">Meta já garantida nesta data.</span>
+{% elif linha.rodada %}<span><strong>{{ frases.get(linha.rodada.codigo, linha.rodada.codigo) }}</strong> <span class="legenda">· {{ linha.rodada.pontos }} pts{% if linha.rodada.ganho != linha.rodada.pontos %}, soma +{{ linha.rodada.ganho }}{% endif %}</span></span>
+{% else %}<span class="legenda">Não alcança nem sendo campeão (chegaria a {{ linha.maximo }} pts).</span>{% endif %}
+</li>
+{% endfor %}
+</ul>
+<p class="legenda">Chave de 32 em todas as categorias. "Soma" é o que entra de verdade quando o novo resultado descarta o seu pior.</p>
+</section>
+
+<section class="cartao">
+<div class="cartao-topo"><h2 class="titulo-secao">Próximos torneios</h2><span class="legenda">8 semanas{% if pais %} · {{ pais }}{% endif %}</span></div>
+{% if tarefa_calendario %}
+{{ c.aguardando('calendario', 'Baixando o calendário da ITF… a página atualiza sozinha.', '/meta?alvo=' ~ meta.alvo ~ '&pais=' ~ pais) }}
+{% elif not calendario.existe %}
+<p class="subtitulo">Baixe o calendário da ITF para ver a meta em cada torneio.</p>
+<form method="post" action="/itf/calendario"><input type="hidden" name="csrf" value="{{ csrf }}"><input type="hidden" name="voltar" value="/meta">
+<button type="submit" class="botao botao-secundario">{{ c.icone('atualizar', 18) }}Baixar calendário</button></form>
+{% elif meta.proximos %}
+<ul class="lista-meta">
+{% for t in meta.proximos %}
+<li>
+<span class="torneio-data">{{ t.inicio.strftime('%d/%m') }}</span>
+<span class="pilha-mini">
+<span class="resultado-nome">{{ t.tournamentName }}</span>
+<span class="legenda">
+{% if t.total_antes >= meta.necessario %}Meta já garantida até lá.
+{% elif t.rodada %}{{ frases.get(t.rodada.codigo, t.rodada.codigo) }} ({{ t.rodada.pontos }} pts)
+{% else %}Não alcança nem sendo campeão.{% endif %}
+</span>
+</span>
+<span class="pill">{{ t.category }}</span>
+</li>
+{% endfor %}
+</ul>
+{% else %}
+<p class="vazio">Nenhum torneio com categoria conhecida nas próximas 8 semanas{% if pais %} em {{ pais }}{% endif %}.</p>
+{% endif %}
+</section>
+</div>
+{% endif %}
+{% endif %}
+{% endblock %}

@@ -1,0 +1,150 @@
+{% extends "base.html" %}
+{% import "_componentes.html" as c with context %}
+{% block titulo %}Estimar ranking{% endblock %}
+{% block conteudo %}
+<div class="cabecalho">
+<div class="pilha-pequena">
+<h1 class="titulo-pagina">Estimar meu ranking</h1>
+<p class="subtitulo">{% if dados %}Base: ranking {{ genero_rotulo }} de {{ data_ranking }}{% else %}Ranking {{ genero_rotulo }} ainda não baixado{% endif %}{% if torneio_nome %} · {{ torneio_nome }}{% endif %}</p>
+</div>
+<a class="botao botao-secundario" href="/meta">{{ c.icone('meta', 18) }}Meta de ranking</a>
+</div>
+
+{% if not dados %}
+<p class="mensagem mensagem-info">Sem o ranking {{ genero_rotulo }} não dá para estimar posição. {% if atleta.admin %}Atualize o ranking na <a href="/inicio">tela inicial</a>.{% else %}Peça ao administrador para baixar o ranking.{% endif %}</p>
+{% elif not vinculado %}
+<p class="mensagem mensagem-info">Sua conta ainda não está vinculada ao ranking: vou considerar 0 pontos hoje. <a href="/perfil/itf">Procurar meu nome no ranking</a></p>
+{% endif %}
+
+<div class="grade grade-larga grade-topo">
+<div class="pilha">
+<nav class="segmentado" aria-label="Como informar o resultado">
+<a href="/estimar?modo=colocacao"{% if modo == 'colocacao' %} aria-current="true"{% endif %}>Pela colocação</a>
+<a href="/estimar?modo=pontos"{% if modo == 'pontos' %} aria-current="true"{% endif %}>Pelos pontos</a>
+</nav>
+
+<form method="get" action="/estimar" class="form">
+<input type="hidden" name="modo" value="{{ modo }}">
+{% if modo == 'colocacao' %}
+<div class="campo">
+<label for="cat">Categoria</label>
+<select id="cat" name="cat" data-auto-enviar>
+{% for cat in categorias %}<option value="{{ cat.id }}"{% if cat.id == categoria.id %} selected{% endif %}>{{ cat.nome }}</option>{% endfor %}
+</select>
+</div>
+<div class="campo">
+<label for="chave">Chave</label>
+<select id="chave" name="chave" data-auto-enviar>
+{% for ch in categoria.chaves %}<option value="{{ ch.id }}"{% if ch.id == chave.id %} selected{% endif %}>Chave de {{ ch.chave_principal }}{% if ch.qualifying %} · qualifying de {{ ch.qualifying }}{% else %} · sem qualifying{% endif %}</option>{% endfor %}
+</select>
+</div>
+{% if rodadas.qualifying %}
+<div class="campo">
+<label for="fase">Onde você terminou</label>
+<select id="fase" name="fase" data-auto-enviar>
+<option value="principal"{% if fase == 'principal' %} selected{% endif %}>Chave principal</option>
+<option value="qualifying"{% if fase == 'qualifying' %} selected{% endif %}>Qualifying (não me classifiquei)</option>
+</select>
+<span class="ajuda">Quem veio do qualifying e entrou na chave conta como chave principal.</span>
+</div>
+{% endif %}
+<div class="campo">
+<label for="rodada">Até onde você chegou</label>
+<select id="rodada" name="rodada" required>
+<option value=""{% if not rodada %} selected{% endif %} disabled>Escolha a rodada</option>
+{% for r in rodadas[fase] %}<option value="{{ r.codigo }}"{% if r.codigo == rodada %} selected{% endif %}>{{ r.nome }} — {{ r.pontos }} pts</option>{% endfor %}
+<option value="{{ SEM_PONTOS }}"{% if rodada == SEM_PONTOS %} selected{% endif %}>Parei numa rodada que não vale pontos</option>
+</select>
+</div>
+{% if bundles_disponiveis or (fase == 'principal' and rodadas.bonus) %}
+<details class="extras"{% if bundles or bonus %} open{% endif %}>
+<summary>Bundles ou bonus draw</summary>
+<div class="pilha-pequena">
+{% if bundles_disponiveis %}
+<fieldset class="grupo">
+<legend>Bundles que o torneio ofereceu</legend>
+{% for b, nome in bundles_disponiveis %}<label class="opcao"><input type="checkbox" name="bundles" value="{{ b }}"{% if b in bundles %} checked{% endif %}> {{ nome }}</label>{% endfor %}
+</fieldset>
+{% endif %}
+{% if fase == 'principal' and rodadas.bonus %}
+<div class="campo">
+<label for="bonus">Bonus draw (consolação)</label>
+<select id="bonus" name="bonus">
+<option value="">Não joguei</option>
+{% for r in rodadas.bonus %}<option value="{{ r.codigo }}"{% if r.codigo == bonus %} selected{% endif %}>{{ r.nome }} — {{ r.pontos }} pts</option>{% endfor %}
+</select>
+<span class="ajuda">Para quem perdeu na 1ª rodada da chave principal (ou na 2ª, se teve bye).</span>
+</div>
+{% endif %}
+</div>
+</details>
+{% endif %}
+{% else %}
+{{ c.campo('pontos', 'Pontos que você ganhou no torneio', pontos_digitados, tipo='number', obrigatorio=true, atributos='inputmode="numeric" min="0"') }}
+{% endif %}
+{% if torneio_nome %}<input type="hidden" name="torneio_nome" value="{{ torneio_nome }}">{% endif %}
+{% if pior_itf %}
+<p class="legenda">{{ c.icone('ok', 16) }} Seu pior resultado que conta, pelos dados da ITF: <strong>{{ pior_itf.pontos }} pts</strong> ({{ pior_itf.torneio }}). A estimativa já sai exata.</p>
+{% elif pede_pior %}
+{{ c.campo('pior', 'Seu pior resultado entre os ' ~ melhores ~ ' que contam (opcional)', pior, tipo='number', ajuda='Você já tem ' ~ melhores ~ ' torneios ou mais: com esse valor a estimativa sai exata. Ou busque seus resultados no Perfil.', atributos='inputmode="numeric" min="0"') }}
+{% endif %}
+<button type="submit" class="botao botao-primario">Calcular</button>
+</form>
+</div>
+
+<div class="pilha">
+{% if erro %}<p class="mensagem mensagem-erro" role="alert">{{ erro }}</p>{% endif %}
+{% if calculo %}
+<section class="cartao">
+<h2 class="titulo-secao">Pontos do torneio</h2>
+<ul class="lista-partes">
+{% for descricao, valor in calculo.partes %}<li><span>{{ descricao }}</span><span class="numero">{{ valor }}</span></li>{% endfor %}
+<li class="total"><span>Total</span><span class="numero">{{ calculo.total }}</span></li>
+</ul>
+{% for aviso in calculo.avisos %}<p class="legenda">{{ aviso }}</p>{% endfor %}
+</section>
+{% endif %}
+
+{% if resultado %}
+<section class="cartao" aria-label="Resultado da estimativa">
+<div class="comparacao">
+<div class="pilha-mini"><span class="rotulo">Hoje</span><span class="numero numero-grande">{{ c.rank(resultado.rank_atual) }}</span><span class="legenda">{{ resultado.pontos_atuais }} pts</span></div>
+<span class="seta-destaque">{{ c.icone('seta', 28) }}</span>
+<div class="pilha-mini">
+<span class="rotulo">Depois</span>
+<span class="numero numero-grande destaque">{% if resultado.rank_melhor == resultado.rank_pior %}{{ c.rank(resultado.rank_melhor) }}{% else %}{{ c.rank(resultado.rank_melhor) }}–{{ resultado.rank_pior }}{% endif %}</span>
+<span class="legenda">{% if resultado.exata_nos_pontos %}{{ resultado.pontos_max }} pts{% else %}{{ resultado.pontos_min }}–{{ resultado.pontos_max }} pts{% endif %}</span>
+</div>
+</div>
+<div class="linha-selos">
+{% if resultado.rank_atual and resultado.rank_melhor %}
+{% set subida = resultado.rank_atual - resultado.rank_melhor %}
+{% if subida > 0 %}<span class="selo selo-sobe">{{ c.icone('sobe', 16) }}{% if not resultado.exata_nos_pontos %}até {% endif %}{{ subida }} posições</span>
+{% else %}<span class="selo">Mesma posição</span>{% endif %}
+{% elif resultado.rank_melhor %}<span class="selo selo-sobe">{{ c.icone('sobe', 16) }}Entra no ranking</span>{% endif %}
+<span class="legenda">+{{ resultado.pontos_torneio }} pts deste torneio</span>
+</div>
+</section>
+<div class="aviso">{{ c.icone('info', 20) }}<div class="pilha-mini">{% for aviso in resultado.avisos %}<p>{{ aviso }}</p>{% endfor %}</div></div>
+
+<form method="post" action="/resultados" class="cartao form">
+<h2 class="titulo-secao">Salvar no meu histórico</h2>
+<input type="hidden" name="csrf" value="{{ csrf }}">
+<input type="hidden" name="pontos" value="{{ pontos_torneio }}">
+<input type="hidden" name="origem" value="{{ modo }}">
+{% if modo == 'colocacao' %}
+<input type="hidden" name="categoria" value="{{ categoria.id }}">
+<input type="hidden" name="chave" value="{{ chave.id }}">
+<input type="hidden" name="fase" value="{{ fase }}">
+<input type="hidden" name="rodada" value="{{ rodada_salvar }}">
+{% endif %}
+{{ c.campo('torneio', 'Nome do torneio', torneio_nome, tipo='text', obrigatorio=true, ajuda='Ex: BT200 Curitiba', atributos='maxlength="100"') }}
+{{ c.campo('data', 'Data do torneio', hoje, tipo='date') }}
+<button type="submit" class="botao botao-primario">Salvar resultado</button>
+</form>
+{% elif not erro %}
+<p class="vazio">{% if modo == 'colocacao' %}Escolha a categoria, a chave e até onde você chegou.{% else %}Digite os pontos que você ganhou.{% endif %} A estimativa aparece aqui.</p>
+{% endif %}
+</div>
+</div>
+{% endblock %}

@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+{% import "_componentes.html" as c with context %}
+{% block titulo %}Criar conta{% endblock %}
+{% block avulsa %}
+<div class="pilha-pequena">
+<h1 class="titulo-pagina">Criar conta</h1>
+<p class="subtitulo">O BT Ranking é só para convidados. Use o código que você recebeu.</p>
+</div>
+{% if erros %}<p class="mensagem mensagem-erro" role="alert">Confira os campos marcados abaixo.</p>{% endif %}
+<form class="form" method="post" action="/cadastro" novalidate>
+{{ c.campo('convite', 'Código do convite', dados.get('convite'), erros=erros, obrigatorio=true, ajuda='Ex: BT-AB12-CD34', atributos='autocapitalize="characters" spellcheck="false"') }}
+{{ c.campo('email', 'E-mail', dados.get('email'), tipo='email', erros=erros, obrigatorio=true, autocomplete='email') }}
+{{ c.campo('senha', 'Senha', tipo='password', erros=erros, obrigatorio=true, autocomplete='new-password', ajuda='Mínimo de 8 caracteres') }}
+{{ c.campo('senha2', 'Repita a senha', tipo='password', erros=erros, obrigatorio=true, autocomplete='new-password') }}
+{{ c.campo('nome', 'Nome completo', dados.get('nome'), erros=erros, obrigatorio=true, autocomplete='name') }}
+{{ c.campo_genero(dados.get('genero'), erros) }}
+{{ c.campo('nome_itf', 'Nome como aparece na ITF (opcional)', dados.get('nome_itf'), erros=erros, ajuda='SOBRENOME Nome — ajuda a achar você no ranking') }}
+<div class="form-linha">
+{{ c.campo('ano_nascimento', 'Ano de nascimento', dados.get('ano_nascimento'), erros=erros, atributos='inputmode="numeric" maxlength="4"') }}
+{{ c.campo('nacionalidade', 'Nacionalidade', dados.get('nacionalidade'), erros=erros, ajuda='3 letras, ex: BRA', atributos='maxlength="3" autocapitalize="characters"') }}
+</div>
+{{ c.campo('cidade', 'Cidade (opcional)', dados.get('cidade'), erros=erros, autocomplete='address-level2') }}
+<button class="botao botao-primario botao-largo" type="submit">Criar conta</button>
+</form>
+<p class="centro"><a href="/entrar">Já tenho conta</a></p>
+{% endblock %}

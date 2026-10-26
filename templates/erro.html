@@ -1,0 +1,10 @@
+{% extends "base.html" %}
+{% block titulo %}Erro {{ codigo }}{% endblock %}
+{% block avulsa %}
+<div class="pilha-pequena">
+<span class="rotulo">Erro {{ codigo }}</span>
+<h1 class="titulo-pagina">Algo deu errado</h1>
+<p class="subtitulo">{{ erro }}</p>
+</div>
+<a class="botao botao-primario botao-largo" href="/">Voltar ao início</a>
+{% endblock %}

@@ -1,0 +1,1508 @@
+{
+  "titulo": "ITF Beach Tennis World Tour - pontos de ranking",
+  "versao": "2026 (revisão de 12/08/2026)",
+  "fontes": [
+    {
+      "documento": "ITF Beach Tennis World Tour Regulations 2026 (revisão 12/08/2026) - Appendix B",
+      "url": "https://tenisfmt.com/wp-content/uploads/2026/08/2026-beach-tennis-world-tour-regulations-120826.pdf",
+      "obs": "Cópia hospedada pela federação mexicana; tabela idêntica ao resumo oficial da ITF abaixo."
+    },
+    {
+      "documento": "ITF Beach Tennis World Tour - Summary of 2026 Regulation Changes (12/08/2026)",
+      "url": "https://www.itftennis.com/media/17093/itf-beach-tennis-world-tour-summary-of-2026-regulation-changes-12082026.pdf"
+    }
+  ],
+  "regras_ranking": {
+    "melhores_resultados": 10,
+    "janela_semanas": 52,
+    "texto": [
+      "O ranking de duplas (masculino e feminino) soma os 10 melhores resultados em 52 semanas.",
+      "O ranking de mistas é separado e soma os 6 melhores resultados.",
+      "Pontos entram no ranking na segunda-feira seguinte ao fim do torneio.",
+      "Para pontuar é preciso chegar a uma rodada que vale pontos e ter jogado ao menos uma partida.",
+      "Bye ou W.O. só contam como rodada vencida se a dupla tiver vencido ao menos uma partida na mesma chave.",
+      "Pontos do qualifying são para quem joga o qualifying e não se classifica.",
+      "Pontos do bonus draw (consolação) somam com os da chave principal.",
+      "Bundles (TV, Hospitality, Officiating) são opcionais: só valem se o torneio oferecer (BT100, BT200 e BT400)."
+    ]
+  },
+  "rodadas": {
+    "principal": {
+      "W": "Campeão",
+      "F": "Final (vice)",
+      "SF": "Semifinal",
+      "QF": "Quartas de final",
+      "R16": "Oitavas de final",
+      "R32/24": "Rodada de 32/24",
+      "R48": "Rodada de 48"
+    },
+    "qualifying": {
+      "FRQ": "Rodada final do qualifying",
+      "R2": "2ª rodada do qualifying",
+      "R1": "1ª rodada do qualifying"
+    },
+    "bonus": {
+      "W": "Campeão do bonus draw",
+      "F": "Final do bonus draw",
+      "SF": "Semifinal do bonus draw",
+      "QF": "Quartas do bonus draw",
+      "R16": "Oitavas do bonus draw"
+    }
+  },
+  "bundles": {
+    "TV": "TV",
+    "HOSPITALITY": "Hospitality",
+    "OFFICIATING": "Officiating"
+  },
+  "categorias": [
+    {
+      "id": "WCH",
+      "nome": "World Championships",
+      "por_colocacao": true,
+      "chaves": [
+        {
+          "id": "32x64",
+          "chave_principal": 32,
+          "qualifying": 64,
+          "classificados": 8,
+          "rodadas_qualifying": 3,
+          "pontos": {
+            "principal": {
+              "W": 1000,
+              "F": 720,
+              "SF": 576,
+              "QF": 216,
+              "R16": 108,
+              "R32/24": 54,
+              "R48": null
+            },
+            "qualifying": {
+              "FRQ": 34,
+              "R2": 19,
+              "R1": 13
+            },
+            "bonus": {
+              "W": 53,
+              "F": 37,
+              "SF": 29,
+              "QF": 19,
+              "R16": 13
+            }
+          }
+        },
+        {
+          "id": "32x48",
+          "chave_principal": 32,
+          "qualifying": 48,
+          "classificados": 8,
+          "rodadas_qualifying": 3,
+          "pontos": {
+            "principal": {
+              "W": 1000,
+              "F": 720,
+              "SF": 576,
+              "QF": 216,
+              "R16": 108,
+              "R32/24": 54,
+              "R48": null
+            },
+            "qualifying": {
+              "FRQ": 34,
+              "R2": 19,
+              "R1": 13
+            },
+            "bonus": {
+              "W": 53,
+              "F": 37,
+              "SF": 29,
+              "QF": 19,
+              "R16": 13
+            }
+          }
+        },
+        {
+          "id": "32x32",
+          "chave_principal": 32,
+          "qualifying": 32,
+          "classificados": 8,
+          "rodadas_qualifying": 2,
+          "pontos": {
+            "principal": {
+              "W": 1000,
+              "F": 720,
+              "SF": 576,
+              "QF": 216,
+              "R16": 108,
+              "R32/24": 54,
+              "R48": null
+            },
+            "qualifying": {
+              "FRQ": 34,
+              "R2": null,
+              "R1": 19
+            },
+            "bonus": {
+              "W": 53,
+              "F": 37,
+              "SF": 29,
+              "QF": 19,
+              "R16": 13
+            }
+          }
+        },
+        {
+          "id": "32x16",
+          "chave_principal": 32,
+          "qualifying": 16,
+          "classificados": 8,
+          "rodadas_qualifying": 1,
+          "pontos": {
+            "principal": {
+              "W": 1000,
+              "F": 720,
+              "SF": 576,
+              "QF": 216,
+              "R16": 108,
+              "R32/24": 54,
+              "R48": null
+            },
+            "qualifying": {
+              "FRQ": 34,
+              "R2": null,
+              "R1": null
+            },
+            "bonus": {
+              "W": 53,
+              "F": 37,
+              "SF": 29,
+              "QF": 19,
+              "R16": 13
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "TOUR_FINALS",
+      "nome": "Tour Finals",
+      "por_colocacao": false,
+      "regra_especial": [
+        {
+          "descricao": "Vitória no round-robin",
+          "pontos": 200
+        },
+        {
+          "descricao": "Vitória na semifinal",
+          "pontos": 200
+        },
+        {
+          "descricao": "Vitória na final",
+          "pontos": 200
+        },
+        {
+          "descricao": "Campeão invicto",
+          "pontos": 1000
+        }
+      ],
+      "chaves": []
+    },
+    {
+      "id": "SS100",
+      "nome": "Sand Series 100+",
+      "por_colocacao": true,
+      "chaves": [
+        {
+          "id": "32x48",
+          "chave_principal": 32,
+          "qualifying": 48,
+          "classificados": 8,
+          "rodadas_qualifying": 3,
+          "pontos": {
+            "principal": {
+              "W": 800,
+              "F": 504,
+              "SF": 300,
+              "QF": 150,
+              "R16": 75,
+              "R32/24": 37,
+              "R48": null
+            },
+            "qualifying": {
+              "FRQ": 24,
+              "R2": 19,
+              "R1": 13
+            },
+            "bonus": {
+              "W": 37,
+              "F": 27,
+              "SF": 19,
+              "QF": 11,
+              "R16": 7
+            }
+          }
+        },
+        {
+          "id": "32x32",
+          "chave_principal": 32,
+          "qualifying": 32,
+          "classificados": 8,
+          "rodadas_qualifying": 2,
+          "pontos": {
+            "principal": {
+              "W": 800,
+              "F": 504,
+              "SF": 300,
+              "QF": 150,
+              "R16": 75,
+              "R32/24": 37,
+              "R48": null
+            },
+            "qualifying": {
+              "FRQ": 24,
+              "R2": null,
+              "R1": 13
+            },
+            "bonus": {
+              "W": 37,
+              "F": 27,
+              "SF": 19,
+              "QF": 11,
+              "R16": 7
+            }
+          }
+        },
+        {
+          "id": "32x16",
+          "chave_principal": 32,
+          "qualifying": 16,
+          "classificados": 8,
+          "rodadas_qualifying": 1,
+          "pontos": {
+            "principal": {
+              "W": 800,
+              "F": 504,
+              "SF": 300,
+              "QF": 150,
+              "R16": 75,
+              "R32/24": 37,
+              "R48": null
+            },
+            "qualifying": {
+              "FRQ": 24,
+              "R2": null,
+              "R1": null
+            },
+            "bonus": {
+              "W": 37,
+              "F": 27,
+              "SF": 19,
+              "QF": 11,
+              "R16": 7
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "SS75",
+      "nome": "Sand Series 75",
+      "por_colocacao": true,
+      "chaves": [
+        {
+          "id": "32x48",
+          "chave_principal": 32,
+          "qualifying": 48,
+          "classificados": 8,
+          "rodadas_qualifying": 3,
+          "pontos": {
+            "principal": {
+              "W": 700,
+              "F": 432,
+              "SF": 260,
+              "QF": 130,
+              "R16": 65,
+              "R32/24": 32,
+              "R48": null
+            },
+            "qualifying": {
+              "FRQ": 19,
+              "R2": 13,
+              "R1": 10
+            },
+            "bonus": {
+              "W": 32,
+              "F": 23,
+              "SF": 15,
+              "QF": 9,
+              "R16": 6
+            }
+          }
+        },
+        {
+          "id": "32x32",
+          "chave_principal": 32,
+          "qualifying": 32,
+          "classificados": 8,
+          "rodadas_qualifying": 2,
+          "pontos": {
+            "principal": {
+              "W": 700,
+              "F": 432,
+              "SF": 260,
+              "QF": 130,
+              "R16": 65,
+              "R32/24": 32,
+              "R48": null
+            },
+            "qualifying": {
+              "FRQ": 19,
+              "R2": null,
+              "R1": 10
+            },
+            "bonus": {
+              "W": 32,
+              "F": 23,
+              "SF": 15,
+              "QF": 9,
+              "R16": 6
+            }
+          }
+        },
+        {
+          "id": "32x16",
+          "chave_principal": 32,
+          "qualifying": 16,
+          "classificados": 8,
+          "rodadas_qualifying": 1,
+          "pontos": {
+            "principal": {
+              "W": 700,
+              "F": 432,
+              "SF": 260,
+              "QF": 130,
+              "R16": 65,
+              "R32/24": 32,
+              "R48": null
+            },
+            "qualifying": {
+              "FRQ": 19,
+              "R2": null,
+              "R1": null
+            },
+            "bonus": {
+              "W": 32,
+              "F": 23,
+              "SF": 15,
+              "QF": 9,
+              "R16": 6
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "BT400",
+      "nome": "BT400",
+      "por_colocacao": true,
+      "chaves": [
+        {
+          "id": "32x32",
+          "chave_principal": 32,
+          "qualifying": 32,
+          "classificados": 8,
+          "rodadas_qualifying": 2,
+          "pontos": {
+            "principal": {
+              "W": 400,
+              "F": 240,
+              "SF": 144,
+              "QF": 72,
+              "R16": 36,
+              "R32/24": 18,
+              "R48": null
+            },
+            "qualifying": {
+              "FRQ": 9,
+              "R2": null,
+              "R1": 4
+            },
+            "bonus": {
+              "W": 17,
+              "F": 12,
+              "SF": 8,
+              "QF": 6,
+              "R16": 4
+            }
+          }
+        },
+        {
+          "id": "32x16",
+          "chave_principal": 32,
+          "qualifying": 16,
+          "classificados": 8,
+          "rodadas_qualifying": 1,
+          "pontos": {
+            "principal": {
+              "W": 400,
+              "F": 240,
+              "SF": 144,
+              "QF": 72,
+              "R16": 36,
+              "R32/24": 18,
+              "R48": null
+            },
+            "qualifying": {
+              "FRQ": 9,
+              "R2": null,
+              "R1": null
+            },
+            "bonus": {
+              "W": 17,
+              "F": 12,
+              "SF": 8,
+              "QF": 6,
+              "R16": 4
+            }
+          }
+        },
+        {
+          "id": "24x24",
+          "chave_principal": 24,
+          "qualifying": 24,
+          "classificados": 8,
+          "rodadas_qualifying": 2,
+          "pontos": {
+            "principal": {
+              "W": 400,
+              "F": 240,
+              "SF": 144,
+              "QF": 72,
+              "R16": 36,
+              "R32/24": 18,
+              "R48": null
+            },
+            "qualifying": {
+              "FRQ": 9,
+              "R2": null,
+              "R1": 4
+            },
+            "bonus": {
+              "W": 17,
+              "F": 12,
+              "SF": 8,
+              "QF": 6,
+              "R16": null
+            }
+          }
+        },
+        {
+          "id": "24x16",
+          "chave_principal": 24,
+          "qualifying": 16,
+          "classificados": 8,
+          "rodadas_qualifying": 1,
+          "pontos": {
+            "principal": {
+              "W": 400,
+              "F": 240,
+              "SF": 144,
+              "QF": 72,
+              "R16": 36,
+              "R32/24": 18,
+              "R48": null
+            },
+            "qualifying": {
+              "FRQ": 9,
+              "R2": null,
+              "R1": null
+            },
+            "bonus": {
+              "W": 17,
+              "F": 12,
+              "SF": 8,
+              "QF": 6,
+              "R16": null
+            }
+          }
+        },
+        {
+          "id": "16x16",
+          "chave_principal": 16,
+          "qualifying": 16,
+          "classificados": 4,
+          "rodadas_qualifying": 2,
+          "pontos": {
+            "principal": {
+              "W": 400,
+              "F": 240,
+              "SF": 144,
+              "QF": 72,
+              "R16": 18,
+              "R32/24": null,
+              "R48": null
+            },
+            "qualifying": {
+              "FRQ": 9,
+              "R2": null,
+              "R1": 4
+            },
+            "bonus": {
+              "W": 17,
+              "F": 12,
+              "SF": 8,
+              "QF": 6,
+              "R16": null
+            }
+          }
+        },
+        {
+          "id": "16x8",
+          "chave_principal": 16,
+          "qualifying": 8,
+          "classificados": 4,
+          "rodadas_qualifying": 1,
+          "pontos": {
+            "principal": {
+              "W": 400,
+              "F": 240,
+              "SF": 144,
+              "QF": 72,
+              "R16": 18,
+              "R32/24": null,
+              "R48": null
+            },
+            "qualifying": {
+              "FRQ": 9,
+              "R2": null,
+              "R1": null
+            },
+            "bonus": {
+              "W": 17,
+              "F": 12,
+              "SF": 8,
+              "QF": 6,
+              "R16": null
+            }
+          }
+        }
+      ],
+      "bundles": {
+        "TV": {
+          "W": 40,
+          "F": 24,
+          "SF": 14,
+          "QF": 7,
+          "R16": 4,
+          "R32/24": 2
+        },
+        "HOSPITALITY": {
+          "W": 20,
+          "F": 12,
+          "SF": 7,
+          "QF": 4,
+          "R16": 2,
+          "R32/24": 1
+        },
+        "OFFICIATING": {
+          "W": 10,
+          "F": 6,
+          "SF": 4,
+          "QF": 2,
+          "R16": 1,
+          "R32/24": 0
+        }
+      }
+    },
+    {
+      "id": "BT200",
+      "nome": "BT200 / Regional Championships 1",
+      "por_colocacao": true,
+      "chaves": [
+        {
+          "id": "48x0",
+          "chave_principal": 48,
+          "qualifying": 0,
+          "classificados": 0,
+          "rodadas_qualifying": 0,
+          "pontos": {
+            "principal": {
+              "W": 200,
+              "F": 120,
+              "SF": 72,
+              "QF": 36,
+              "R16": 18,
+              "R32/24": 9,
+              "R48": 5
+            },
+            "qualifying": {
+              "FRQ": null,
+              "R2": null,
+              "R1": null
+            },
+            "bonus": {
+              "W": null,
+              "F": null,
+              "SF": null,
+              "QF": null,
+              "R16": null
+            }
+          },
+          "obs": "Linha marcada com * na tabela oficial; o documento não explica o asterisco."
+        },
+        {
+          "id": "32x32",
+          "chave_principal": 32,
+          "qualifying": 32,
+          "classificados": 8,
+          "rodadas_qualifying": 2,
+          "pontos": {
+            "principal": {
+              "W": 200,
+              "F": 120,
+              "SF": 72,
+              "QF": 36,
+              "R16": 18,
+              "R32/24": 9,
+              "R48": null
+            },
+            "qualifying": {
+              "FRQ": 5,
+              "R2": null,
+              "R1": 2
+            },
+            "bonus": {
+              "W": 8,
+              "F": 6,
+              "SF": 4,
+              "QF": 3,
+              "R16": 2
+            }
+          }
+        },
+        {
+          "id": "32x16",
+          "chave_principal": 32,
+          "qualifying": 16,
+          "classificados": 8,
+          "rodadas_qualifying": 1,
+          "pontos": {
+            "principal": {
+              "W": 200,
+              "F": 120,
+              "SF": 72,
+              "QF": 36,
+              "R16": 18,
+              "R32/24": 9,
+              "R48": null
+            },
+            "qualifying": {
+              "FRQ": 5,
+              "R2": null,
+              "R1": null
+            },
+            "bonus": {
+              "W": 8,
+              "F": 6,
+              "SF": 4,
+              "QF": 3,
+              "R16": 2
+            }
+          }
+        },
+        {
+          "id": "24x24",
+          "chave_principal": 24,
+          "qualifying": 24,
+          "classificados": 8,
+          "rodadas_qualifying": 2,
+          "pontos": {
+            "principal": {
+              "W": 200,
+              "F": 120,
+              "SF": 72,
+              "QF": 36,
+              "R16": 18,
+              "R32/24": 9,
+              "R48": null
+            },
+            "qualifying": {
+              "FRQ": 5,
+              "R2": null,
+              "R1": 2
+            },
+            "bonus": {
+              "W": 8,
+              "F": 6,
+              "SF": 4,
+              "QF": 3,
+              "R16": null
+            }
+          }
+        },
+        {
+          "id": "24x16",
+          "chave_principal": 24,
+          "qualifying": 16,
+          "classificados": 8,
+          "rodadas_qualifying": 1,
+          "pontos": {
+            "principal": {
+              "W": 200,
+              "F": 120,
+              "SF": 72,
+              "QF": 36,
+              "R16": 18,
+              "R32/24": 9,
+              "R48": null
+            },
+            "qualifying": {
+              "FRQ": 5,
+              "R2": null,
+              "R1": null
+            },
+            "bonus": {
+              "W": 8,
+              "F": 6,
+              "SF": 4,
+              "QF": 3,
+              "R16": null
+            }
+          }
+        },
+        {
+          "id": "16x16",
+          "chave_principal": 16,
+          "qualifying": 16,
+          "classificados": 4,
+          "rodadas_qualifying": 2,
+          "pontos": {
+            "principal": {
+              "W": 200,
+              "F": 120,
+              "SF": 72,
+              "QF": 36,
+              "R16": 9,
+              "R32/24": null,
+              "R48": null
+            },
+            "qualifying": {
+              "FRQ": 5,
+              "R2": null,
+              "R1": 2
+            },
+            "bonus": {
+              "W": 8,
+              "F": 6,
+              "SF": 4,
+              "QF": 3,
+              "R16": null
+            }
+          }
+        },
+        {
+          "id": "16x8",
+          "chave_principal": 16,
+          "qualifying": 8,
+          "classificados": 4,
+          "rodadas_qualifying": 1,
+          "pontos": {
+            "principal": {
+              "W": 200,
+              "F": 120,
+              "SF": 72,
+              "QF": 36,
+              "R16": 9,
+              "R32/24": null,
+              "R48": null
+            },
+            "qualifying": {
+              "FRQ": 5,
+              "R2": null,
+              "R1": null
+            },
+            "bonus": {
+              "W": 8,
+              "F": 6,
+              "SF": 4,
+              "QF": 3,
+              "R16": null
+            }
+          }
+        }
+      ],
+      "bundles": {
+        "TV": {
+          "W": 20,
+          "F": 12,
+          "SF": 7,
+          "QF": 4,
+          "R16": 2,
+          "R32/24": 1
+        },
+        "HOSPITALITY": {
+          "W": 10,
+          "F": 6,
+          "SF": 3,
+          "QF": 2,
+          "R16": 1,
+          "R32/24": 0
+        },
+        "OFFICIATING": {
+          "W": 5,
+          "F": 3,
+          "SF": 2,
+          "QF": 1,
+          "R16": 0,
+          "R32/24": 0
+        }
+      }
+    },
+    {
+      "id": "BT100",
+      "nome": "BT100 / Regional Championships 2",
+      "por_colocacao": true,
+      "chaves": [
+        {
+          "id": "32x32",
+          "chave_principal": 32,
+          "qualifying": 32,
+          "classificados": 8,
+          "rodadas_qualifying": 2,
+          "pontos": {
+            "principal": {
+              "W": 100,
+              "F": 60,
+              "SF": 36,
+              "QF": 18,
+              "R16": 9,
+              "R32/24": 5,
+              "R48": null
+            },
+            "qualifying": {
+              "FRQ": 2,
+              "R2": null,
+              "R1": 1
+            },
+            "bonus": {
+              "W": 3,
+              "F": 2,
+              "SF": 1,
+              "QF": 0,
+              "R16": 0
+            }
+          }
+        },
+        {
+          "id": "32x16",
+          "chave_principal": 32,
+          "qualifying": 16,
+          "classificados": 8,
+          "rodadas_qualifying": 1,
+          "pontos": {
+            "principal": {
+              "W": 100,
+              "F": 60,
+              "SF": 36,
+              "QF": 18,
+              "R16": 9,
+              "R32/24": 5,
+              "R48": null
+            },
+            "qualifying": {
+              "FRQ": 2,
+              "R2": null,
+              "R1": null
+            },
+            "bonus": {
+              "W": 3,
+              "F": 2,
+              "SF": 1,
+              "QF": 0,
+              "R16": 0
+            }
+          }
+        },
+        {
+          "id": "24x24",
+          "chave_principal": 24,
+          "qualifying": 24,
+          "classificados": 8,
+          "rodadas_qualifying": 2,
+          "pontos": {
+            "principal": {
+              "W": 100,
+              "F": 60,
+              "SF": 36,
+              "QF": 18,
+              "R16": 9,
+              "R32/24": 5,
+              "R48": null
+            },
+            "qualifying": {
+              "FRQ": 2,
+              "R2": null,
+              "R1": 1
+            },
+            "bonus": {
+              "W": 3,
+              "F": 2,
+              "SF": 1,
+              "QF": 0,
+              "R16": null
+            }
+          }
+        },
+        {
+          "id": "24x16",
+          "chave_principal": 24,
+          "qualifying": 16,
+          "classificados": 8,
+          "rodadas_qualifying": 1,
+          "pontos": {
+            "principal": {
+              "W": 100,
+              "F": 60,
+              "SF": 36,
+              "QF": 18,
+              "R16": 9,
+              "R32/24": 5,
+              "R48": null
+            },
+            "qualifying": {
+              "FRQ": 2,
+              "R2": null,
+              "R1": null
+            },
+            "bonus": {
+              "W": 3,
+              "F": 2,
+              "SF": 1,
+              "QF": 0,
+              "R16": null
+            }
+          }
+        },
+        {
+          "id": "16x16",
+          "chave_principal": 16,
+          "qualifying": 16,
+          "classificados": 4,
+          "rodadas_qualifying": 2,
+          "pontos": {
+            "principal": {
+              "W": 100,
+              "F": 60,
+              "SF": 36,
+              "QF": 18,
+              "R16": 5,
+              "R32/24": null,
+              "R48": null
+            },
+            "qualifying": {
+              "FRQ": 2,
+              "R2": null,
+              "R1": 1
+            },
+            "bonus": {
+              "W": 3,
+              "F": 2,
+              "SF": 1,
+              "QF": 0,
+              "R16": null
+            }
+          }
+        },
+        {
+          "id": "16x8",
+          "chave_principal": 16,
+          "qualifying": 8,
+          "classificados": 4,
+          "rodadas_qualifying": 1,
+          "pontos": {
+            "principal": {
+              "W": 100,
+              "F": 60,
+              "SF": 36,
+              "QF": 18,
+              "R16": 5,
+              "R32/24": null,
+              "R48": null
+            },
+            "qualifying": {
+              "FRQ": 2,
+              "R2": null,
+              "R1": null
+            },
+            "bonus": {
+              "W": 3,
+              "F": 2,
+              "SF": 1,
+              "QF": 0,
+              "R16": null
+            }
+          }
+        }
+      ],
+      "bundles": {
+        "TV": {
+          "W": 10,
+          "F": 6,
+          "SF": 3,
+          "QF": 2,
+          "R16": 1,
+          "R32/24": 0
+        },
+        "HOSPITALITY": {
+          "W": 5,
+          "F": 3,
+          "SF": 2,
+          "QF": 1,
+          "R16": 0,
+          "R32/24": 0
+        },
+        "OFFICIATING": {
+          "W": 3,
+          "F": 2,
+          "SF": 1,
+          "QF": 0,
+          "R16": 0,
+          "R32/24": 0
+        }
+      }
+    },
+    {
+      "id": "BT50",
+      "nome": "BT50",
+      "por_colocacao": true,
+      "chaves": [
+        {
+          "id": "32x32",
+          "chave_principal": 32,
+          "qualifying": 32,
+          "classificados": 8,
+          "rodadas_qualifying": 2,
+          "pontos": {
+            "principal": {
+              "W": 50,
+              "F": 30,
+              "SF": 18,
+              "QF": 9,
+              "R16": 5,
+              "R32/24": 2,
+              "R48": null
+            },
+            "qualifying": {
+              "FRQ": 1,
+              "R2": null,
+              "R1": 0
+            },
+            "bonus": {
+              "W": 3,
+              "F": 2,
+              "SF": 1,
+              "QF": 0,
+              "R16": 0
+            }
+          }
+        },
+        {
+          "id": "32x16",
+          "chave_principal": 32,
+          "qualifying": 16,
+          "classificados": 8,
+          "rodadas_qualifying": 1,
+          "pontos": {
+            "principal": {
+              "W": 50,
+              "F": 30,
+              "SF": 18,
+              "QF": 9,
+              "R16": 5,
+              "R32/24": 2,
+              "R48": null
+            },
+            "qualifying": {
+              "FRQ": 1,
+              "R2": null,
+              "R1": null
+            },
+            "bonus": {
+              "W": 3,
+              "F": 2,
+              "SF": 1,
+              "QF": 0,
+              "R16": 0
+            }
+          }
+        },
+        {
+          "id": "24x24",
+          "chave_principal": 24,
+          "qualifying": 24,
+          "classificados": 8,
+          "rodadas_qualifying": 2,
+          "pontos": {
+            "principal": {
+              "W": 50,
+              "F": 30,
+              "SF": 18,
+              "QF": 9,
+              "R16": 5,
+              "R32/24": 2,
+              "R48": null
+            },
+            "qualifying": {
+              "FRQ": 1,
+              "R2": null,
+              "R1": 0
+            },
+            "bonus": {
+              "W": 3,
+              "F": 2,
+              "SF": 1,
+              "QF": 0,
+              "R16": null
+            }
+          }
+        },
+        {
+          "id": "24x16",
+          "chave_principal": 24,
+          "qualifying": 16,
+          "classificados": 8,
+          "rodadas_qualifying": 1,
+          "pontos": {
+            "principal": {
+              "W": 50,
+              "F": 30,
+              "SF": 18,
+              "QF": 9,
+              "R16": 5,
+              "R32/24": 2,
+              "R48": null
+            },
+            "qualifying": {
+              "FRQ": 1,
+              "R2": null,
+              "R1": null
+            },
+            "bonus": {
+              "W": 3,
+              "F": 2,
+              "SF": 1,
+              "QF": 0,
+              "R16": null
+            }
+          }
+        },
+        {
+          "id": "16x16",
+          "chave_principal": 16,
+          "qualifying": 16,
+          "classificados": 4,
+          "rodadas_qualifying": 2,
+          "pontos": {
+            "principal": {
+              "W": 50,
+              "F": 30,
+              "SF": 18,
+              "QF": 9,
+              "R16": 2,
+              "R32/24": null,
+              "R48": null
+            },
+            "qualifying": {
+              "FRQ": 1,
+              "R2": null,
+              "R1": 0
+            },
+            "bonus": {
+              "W": 3,
+              "F": 2,
+              "SF": 1,
+              "QF": 0,
+              "R16": null
+            }
+          }
+        },
+        {
+          "id": "16x8",
+          "chave_principal": 16,
+          "qualifying": 8,
+          "classificados": 4,
+          "rodadas_qualifying": 1,
+          "pontos": {
+            "principal": {
+              "W": 50,
+              "F": 30,
+              "SF": 18,
+              "QF": 9,
+              "R16": 2,
+              "R32/24": null,
+              "R48": null
+            },
+            "qualifying": {
+              "FRQ": 1,
+              "R2": null,
+              "R1": null
+            },
+            "bonus": {
+              "W": 3,
+              "F": 2,
+              "SF": 1,
+              "QF": 0,
+              "R16": null
+            }
+          }
+        },
+        {
+          "id": "8x0",
+          "chave_principal": 8,
+          "qualifying": 0,
+          "classificados": 0,
+          "rodadas_qualifying": 0,
+          "pontos": {
+            "principal": {
+              "W": 50,
+              "F": 30,
+              "SF": 18,
+              "QF": 9,
+              "R16": 2,
+              "R32/24": null,
+              "R48": null
+            },
+            "qualifying": {
+              "FRQ": null,
+              "R2": null,
+              "R1": null
+            },
+            "bonus": {
+              "W": 3,
+              "F": 2,
+              "SF": 1,
+              "QF": null,
+              "R16": null
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "BT10",
+      "nome": "BT10",
+      "por_colocacao": true,
+      "chaves": [
+        {
+          "id": "32x32",
+          "chave_principal": 32,
+          "qualifying": 32,
+          "classificados": 8,
+          "rodadas_qualifying": 2,
+          "pontos": {
+            "principal": {
+              "W": 10,
+              "F": 7,
+              "SF": 5,
+              "QF": 3,
+              "R16": 1,
+              "R32/24": null,
+              "R48": null
+            },
+            "qualifying": {
+              "FRQ": 0,
+              "R2": null,
+              "R1": 0
+            },
+            "bonus": {
+              "W": 1,
+              "F": 0,
+              "SF": 0,
+              "QF": 0,
+              "R16": 0
+            }
+          }
+        },
+        {
+          "id": "32x16",
+          "chave_principal": 32,
+          "qualifying": 16,
+          "classificados": 8,
+          "rodadas_qualifying": 1,
+          "pontos": {
+            "principal": {
+              "W": 10,
+              "F": 7,
+              "SF": 5,
+              "QF": 3,
+              "R16": 1,
+              "R32/24": null,
+              "R48": null
+            },
+            "qualifying": {
+              "FRQ": 0,
+              "R2": null,
+              "R1": null
+            },
+            "bonus": {
+              "W": 1,
+              "F": 0,
+              "SF": 0,
+              "QF": 0,
+              "R16": 0
+            }
+          }
+        },
+        {
+          "id": "24x24",
+          "chave_principal": 24,
+          "qualifying": 24,
+          "classificados": 8,
+          "rodadas_qualifying": 2,
+          "pontos": {
+            "principal": {
+              "W": 10,
+              "F": 7,
+              "SF": 5,
+              "QF": 3,
+              "R16": 1,
+              "R32/24": null,
+              "R48": null
+            },
+            "qualifying": {
+              "FRQ": 0,
+              "R2": null,
+              "R1": 0
+            },
+            "bonus": {
+              "W": 1,
+              "F": 0,
+              "SF": 0,
+              "QF": 0,
+              "R16": null
+            }
+          }
+        },
+        {
+          "id": "24x16",
+          "chave_principal": 24,
+          "qualifying": 16,
+          "classificados": 8,
+          "rodadas_qualifying": 1,
+          "pontos": {
+            "principal": {
+              "W": 10,
+              "F": 7,
+              "SF": 5,
+              "QF": 3,
+              "R16": 1,
+              "R32/24": null,
+              "R48": null
+            },
+            "qualifying": {
+              "FRQ": 0,
+              "R2": null,
+              "R1": null
+            },
+            "bonus": {
+              "W": 1,
+              "F": 0,
+              "SF": 0,
+              "QF": 0,
+              "R16": null
+            }
+          }
+        },
+        {
+          "id": "16x16",
+          "chave_principal": 16,
+          "qualifying": 16,
+          "classificados": 4,
+          "rodadas_qualifying": 2,
+          "pontos": {
+            "principal": {
+              "W": 10,
+              "F": 7,
+              "SF": 5,
+              "QF": 3,
+              "R16": 1,
+              "R32/24": null,
+              "R48": null
+            },
+            "qualifying": {
+              "FRQ": 0,
+              "R2": null,
+              "R1": 0
+            },
+            "bonus": {
+              "W": 1,
+              "F": 0,
+              "SF": 0,
+              "QF": 0,
+              "R16": null
+            }
+          }
+        },
+        {
+          "id": "16x8",
+          "chave_principal": 16,
+          "qualifying": 8,
+          "classificados": 4,
+          "rodadas_qualifying": 1,
+          "pontos": {
+            "principal": {
+              "W": 10,
+              "F": 7,
+              "SF": 5,
+              "QF": 3,
+              "R16": 1,
+              "R32/24": null,
+              "R48": null
+            },
+            "qualifying": {
+              "FRQ": 0,
+              "R2": null,
+              "R1": null
+            },
+            "bonus": {
+              "W": 1,
+              "F": 0,
+              "SF": 0,
+              "QF": 0,
+              "R16": null
+            }
+          }
+        },
+        {
+          "id": "8x0",
+          "chave_principal": 8,
+          "qualifying": 0,
+          "classificados": 0,
+          "rodadas_qualifying": 0,
+          "pontos": {
+            "principal": {
+              "W": 10,
+              "F": 7,
+              "SF": 5,
+              "QF": 3,
+              "R16": null,
+              "R32/24": null,
+              "R48": null
+            },
+            "qualifying": {
+              "FRQ": null,
+              "R2": null,
+              "R1": null
+            },
+            "bonus": {
+              "W": 1,
+              "F": 0,
+              "SF": 0,
+              "QF": null,
+              "R16": null
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

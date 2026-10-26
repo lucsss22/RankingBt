@@ -1,0 +1,62 @@
+{% import "_componentes.html" as c with context %}
+<!doctype html>
+<html lang="pt-BR" data-tema="{{ tema }}">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>{% block titulo %}{% endblock %} · BT Ranking</title>
+<meta name="theme-color" content="{{ '#0F1613' if tema == 'b' else '#F5EFE3' }}">
+<link rel="manifest" href="/manifest.webmanifest">
+<link rel="icon" href="/static/icone.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="/static/icone-180.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&amp;family=Barlow:wght@400;500;600&amp;family=Space+Grotesk:wght@500;700&amp;family=Manrope:wght@400;500;600;700&amp;display=swap">
+<link rel="stylesheet" href="/static/app.css?v={{ versao }}">
+<script src="/static/app.js?v={{ versao }}" defer></script>
+</head>
+<body>
+{% if atleta %}
+<div class="app">
+<header class="topo">
+<a class="marca" href="/inicio">{{ c.marca(32) }}<span>BT Ranking</span></a>
+{{ c.botao_tema() }}
+</header>
+
+<nav class="menu" aria-label="Navegação principal">
+<a class="marca" href="/inicio">{{ c.marca() }}<span>BT Ranking</span></a>
+<ul class="menu-itens">
+{% for item_secao, url, curto, longo, no_celular in menu %}
+<li{% if not no_celular %} class="so-computador"{% endif %}><a href="{{ url }}"{% if secao == item_secao %} aria-current="page"{% endif %}>{{ c.icone(item_secao) }}<span class="rotulo-curto">{{ curto }}</span><span class="rotulo-longo">{{ longo }}</span></a></li>
+{% endfor %}
+{% if atleta.admin %}
+<li class="so-computador"><a href="/convites"{% if secao == 'convites' %} aria-current="page"{% endif %}>{{ c.icone('convites') }}<span class="rotulo-longo">Convites</span></a></li>
+{% endif %}
+</ul>
+<div class="menu-rodape">
+{{ c.botao_tema(com_texto=true) }}
+<div class="usuario">
+<span class="avatar" aria-hidden="true">{{ atleta.nome[:1] | upper }}</span>
+<span class="usuario-nome">{{ atleta.nome.split(' ')[0] }}</span>
+<form method="post" action="/sair"><input type="hidden" name="csrf" value="{{ csrf }}"><button type="submit" class="link-botao">Sair</button></form>
+</div>
+</div>
+</nav>
+
+<main class="conteudo" id="conteudo">
+{% block conteudo %}{% endblock %}
+</main>
+</div>
+{% else %}
+<main class="avulsa">
+<div class="avulsa-caixa">
+<div class="avulsa-topo">
+<span class="marca">{{ c.marca() }}<span>BT Ranking</span></span>
+{{ c.botao_tema() }}
+</div>
+{% block avulsa %}{% endblock %}
+</div>
+</main>
+{% endif %}
+</body>
+</html>

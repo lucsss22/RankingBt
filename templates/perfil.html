@@ -1,0 +1,116 @@
+{% extends "base.html" %}
+{% import "_componentes.html" as c with context %}
+{% block titulo %}Meu cadastro{% endblock %}
+{% block conteudo %}
+<div class="pilha-pequena">
+<h1 class="titulo-pagina">Meu cadastro</h1>
+<p class="subtitulo">{{ atleta.email }}</p>
+</div>
+{{ c.mensagens() }}
+
+<section class="cartao" id="resultados-itf">
+<div class="cartao-topo">
+<h2 class="titulo-secao">Meus resultados na ITF</h2>
+{% if itf %}<span class="legenda">buscado em {{ itf.coletado_em.strftime('%d/%m %H:%M') }}</span>{% endif %}
+</div>
+{% if not atleta.itf_player_id %}
+<p class="subtitulo">Vincule sua conta ao ranking ITF para ver seus torneios, parceiros e quais resultados contam.</p>
+<a class="botao botao-primario botao-alinhado" href="/perfil/itf">Procurar meu nome</a>
+{% else %}
+{% if buscando_itf %}
+{{ c.aguardando(tarefa_itf, 'Buscando seus torneios na ITF… pode levar alguns minutos (o site da ITF às vezes segura as buscas). A página atualiza sozinha.', '/perfil#resultados-itf') }}
+{% else %}
+{% if erro_itf %}<p class="mensagem mensagem-erro" role="alert">A última busca falhou: {{ erro_itf }}</p>{% endif %}
+<form method="post" action="/perfil/resultados/atualizar">
+<input type="hidden" name="csrf" value="{{ csrf }}">
+<button type="submit" class="botao botao-secundario botao-alinhado">{{ c.icone('atualizar', 18) }}{{ 'Atualizar meus resultados' if itf else 'Buscar meus resultados na ITF' }}</button>
+</form>
+{% endif %}
+
+{% if itf %}
+<div class="resumo-itf">
+<div class="pilha-mini">
+<span class="numero numero-grande">{{ itf.resumo.soma }} pts</span>
+<span class="legenda">somando os {{ itf.resumo.contando }} resultados que contam no ranking de {{ data_ranking }}</span>
+</div>
+{% if itf.confere %}
+<span class="selo selo-sobe">{{ c.icone('ok', 16) }}Confere com o oficial ({{ itf.oficial }} pts)</span>
+{% elif itf.oficial is not none %}
+<div class="pilha-mini">
+<span class="selo selo-alerta">{{ c.icone('alerta', 16) }}Oficial: {{ itf.oficial }} pts ({{ '%+d' % (itf.oficial - itf.resumo.soma) }})</span>
+<span class="legenda">A diferença vem do que a ITF não informa: bundles, campeonatos regionais{% if itf.resumo.incertos %} ({{ itf.resumo.incertos }} sem cálculo){% endif %} ou chave de tamanho diferente do presumido.</span>
+</div>
+{% endif %}
+</div>
+{% if itf.recentes %}
+<ul class="lista-itf">
+{% for r in itf.recentes %}{% include "_resultado_itf.html" %}{% endfor %}
+</ul>
+{% else %}
+<p class="vazio">Nenhum torneio nos últimos 13 meses.</p>
+{% endif %}
+{% if itf.antigos %}
+<details class="extras">
+<summary>Torneios mais antigos ({{ itf.antigos | length }})</summary>
+<ul class="lista-itf">
+{% for r in itf.antigos %}{% include "_resultado_itf.html" %}{% endfor %}
+</ul>
+</details>
+{% endif %}
+{% endif %}
+{% endif %}
+</section>
+
+<div class="grade grade-larga grade-topo">
+<form method="post" action="/perfil" class="cartao form" novalidate>
+<h2 class="titulo-secao">Dados</h2>
+<input type="hidden" name="csrf" value="{{ csrf }}">
+{{ c.campo('nome', 'Nome completo', dados.nome, erros=erros, obrigatorio=true, autocomplete='name') }}
+{{ c.campo_genero(dados.genero, erros, generos) }}
+{{ c.campo('nome_itf', 'Nome como aparece na ITF', dados.nome_itf, erros=erros, ajuda='SOBRENOME Nome') }}
+<div class="form-linha">
+{{ c.campo('ano_nascimento', 'Ano de nascimento', dados.ano_nascimento, erros=erros, atributos='inputmode="numeric" maxlength="4"') }}
+{{ c.campo('nacionalidade', 'Nacionalidade', dados.nacionalidade, erros=erros, ajuda='3 letras, ex: BRA', atributos='maxlength="3"') }}
+</div>
+{{ c.campo('cidade', 'Cidade', dados.cidade, erros=erros) }}
+<p class="legenda">Trocar o ranking (masculino/feminino) desfaz o vínculo com a ITF.</p>
+<button type="submit" class="botao botao-primario">Salvar dados</button>
+</form>
+
+<div class="pilha">
+<section class="cartao">
+<h2 class="titulo-secao">Ranking ITF</h2>
+{% if atleta.itf_player_id %}
+<p>Vinculado a <strong>{{ atleta.nome_itf }}</strong>.</p>
+<a class="botao botao-secundario botao-alinhado" href="/perfil/itf">Refazer vínculo</a>
+{% else %}
+<p class="subtitulo">Ainda não vinculado. Sem o vínculo a estimativa considera 0 pontos hoje.</p>
+<a class="botao botao-primario botao-alinhado" href="/perfil/itf">Procurar meu nome</a>
+{% endif %}
+</section>
+
+<form method="post" action="/perfil/senha" class="cartao form" novalidate>
+<h2 class="titulo-secao">Trocar senha</h2>
+<input type="hidden" name="csrf" value="{{ csrf }}">
+{{ c.campo('senha_atual', 'Senha atual', tipo='password', erros=erros_senha, obrigatorio=true, autocomplete='current-password') }}
+{{ c.campo('senha_nova', 'Nova senha', tipo='password', erros=erros_senha, obrigatorio=true, autocomplete='new-password', ajuda='Mínimo de 8 caracteres') }}
+{{ c.campo('senha_nova2', 'Repita a nova senha', tipo='password', erros=erros_senha, obrigatorio=true, autocomplete='new-password') }}
+<button type="submit" class="botao botao-secundario botao-alinhado">Trocar senha</button>
+</form>
+
+<section class="cartao">
+<h2 class="titulo-secao">Aparência</h2>
+<p class="subtitulo">Areia &amp; Oceano (claro) ou Quadra Noturna (escuro). Fica salvo neste aparelho.</p>
+{{ c.botao_tema(com_texto=true) }}
+</section>
+
+{% if atleta.admin %}
+<a class="botao botao-secundario" href="/convites">{{ c.icone('convites', 20) }}Convites</a>
+{% endif %}
+<form method="post" action="/sair">
+<input type="hidden" name="csrf" value="{{ csrf }}">
+<button type="submit" class="botao botao-perigo botao-largo">{{ c.icone('sair', 20) }}Sair da conta</button>
+</form>
+</div>
+</div>
+{% endblock %}

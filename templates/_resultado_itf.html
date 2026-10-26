@@ -1,0 +1,19 @@
+{# Um torneio da ITF no perfil. Precisa de `r` (ResultadoITF) e `melhores`. #}
+{% import "_componentes.html" as c with context %}
+<li class="resultado-itf{% if r.conta %} conta{% endif %}">
+<div class="pilha-mini">
+<span class="resultado-nome">{{ r.torneio }}</span>
+<span class="legenda">{{ c.data(r.fim) }}{% if r.categoria %} · {{ r.categoria }}{% endif %}{% if r.parceiro %} · com {{ r.parceiro }}{% endif %}</span>
+<span class="legenda">{{ r.rodada_texto }}{% if r.bonus_rodada %} + bonus draw ({{ r.bonus_rodada }}, +{{ r.pontos_bonus }}){% endif %}{% if r.presumido %} · tamanho da chave presumido{% endif %}</span>
+{% if r.motivo %}<span class="legenda">{{ r.motivo }}</span>{% endif %}
+</div>
+<div class="pilha-mini direita">
+<span class="numero">{{ r.pontos if r.pontos is not none else '—' }}</span>
+{% if r.conta %}<span class="etiqueta-mini etiqueta-conta">conta · vence {{ r.vence.strftime('%d/%m/%y') }}</span>
+{% elif r.ativo %}<span class="etiqueta-mini">fora dos {{ melhores }} melhores</span>
+{% elif r.situacao == 'em_andamento' %}<span class="etiqueta-mini">em andamento</span>
+{% elif r.situacao == 'sem_regra' %}<span class="etiqueta-mini etiqueta-alerta">sem cálculo</span>
+{% elif r.entrada and r.entrada > itf.data_ref %}<span class="etiqueta-mini">entra no ranking em {{ r.entrada.strftime('%d/%m') }}</span>
+{% else %}<span class="etiqueta-mini">fora das 52 semanas</span>{% endif %}
+</div>
+</li>

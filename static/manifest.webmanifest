@@ -1,0 +1,16 @@
+{
+  "name": "BT Ranking",
+  "short_name": "BT Ranking",
+  "description": "Ranking ITF de beach tennis: estimativa, pontos por rodada e tierlist de duplas.",
+  "lang": "pt-BR",
+  "start_url": "/inicio",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#F5EFE3",
+  "theme_color": "#0A5C9E",
+  "icons": [
+    {"src": "/static/icone-192.png", "sizes": "192x192", "type": "image/png"},
+    {"src": "/static/icone-512.png", "sizes": "512x512", "type": "image/png"},
+    {"src": "/static/icone-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable"}
+  ]
+}

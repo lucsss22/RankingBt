@@ -1,0 +1,47 @@
+{# Tabela de pontos de uma chave: precisa de categoria, chave, rodadas, bundles e tabela. #}
+<div class="grade grade-larga">
+<section class="cartao">
+<div class="cartao-topo"><h2 class="titulo-secao">Chave principal</h2><span class="legenda">pontos de quem para ali</span></div>
+<div class="rodadas">
+{% for r in rodadas.principal %}
+<div class="rodada">
+<span class="pill">{{ r.codigo }}</span>
+<div class="rodada-meio"><span>{{ r.nome }}</span><span class="barra"><span style="width: {{ r.pct }}%"></span></span></div>
+<span class="numero">{{ r.pontos }}</span>
+</div>
+{% endfor %}
+</div>
+</section>
+
+<div class="pilha">
+{% if rodadas.qualifying %}
+<section class="cartao">
+<h2 class="titulo-secao">Qualifying <span class="legenda">· para quem não se classifica</span></h2>
+<div class="etiquetas">{% for r in rodadas.qualifying %}<span class="etiqueta"><b>{{ r.codigo }}</b> {{ r.pontos }} pts</span>{% endfor %}</div>
+</section>
+{% endif %}
+{% if rodadas.bonus %}
+<section class="cartao">
+<h2 class="titulo-secao">Bonus draw <span class="legenda">· soma com a chave principal</span></h2>
+<div class="etiquetas">{% for r in rodadas.bonus %}<span class="etiqueta"><b>{{ r.codigo }}</b> {{ r.pontos }}</span>{% endfor %}</div>
+<p class="legenda">Consolação para quem perdeu na 1ª rodada da chave principal (ou na 2ª, se teve bye).</p>
+</section>
+{% endif %}
+{% if bundles %}
+<section class="cartao">
+<h2 class="titulo-secao">Bundles <span class="legenda">· opcionais, se o torneio oferecer</span></h2>
+<div class="tabela-rolagem">
+<table class="tabela tabela-compacta">
+<thead><tr><th scope="col">Rodada</th>{% for _, nome in bundles %}<th scope="col">{{ nome }}</th>{% endfor %}</tr></thead>
+<tbody>
+{% for r in rodadas.principal %}
+<tr><th scope="row">{{ r.codigo }}</th>{% for b, _ in bundles %}<td>{{ '+' ~ r.bundles[b] if r.bundles.get(b) is not none else '—' }}</td>{% endfor %}</tr>
+{% endfor %}
+</tbody>
+</table>
+</div>
+</section>
+{% endif %}
+</div>
+</div>
+<p class="legenda">Rodadas que não aparecem não valem pontos nesta chave. O ranking soma os {{ tabela.regras_ranking.melhores_resultados }} melhores resultados em {{ tabela.regras_ranking.janela_semanas }} semanas.</p>

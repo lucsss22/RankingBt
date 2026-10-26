@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+{% import "_componentes.html" as c with context %}
+{% block titulo %}Entrar{% endblock %}
+{% block avulsa %}
+<div class="pilha-pequena">
+<h1 class="titulo-pagina">Entrar</h1>
+<p class="subtitulo">Acompanhe seu ranking ITF e veja para onde você vai depois de cada torneio.</p>
+</div>
+{{ c.mensagens(erro) }}
+<form class="form" method="post" action="/entrar">
+{{ c.campo('email', 'E-mail', email, tipo='email', obrigatorio=true, autocomplete='email') }}
+{{ c.campo('senha', 'Senha', tipo='password', obrigatorio=true, autocomplete='current-password') }}
+<button class="botao botao-primario botao-largo" type="submit">Entrar</button>
+</form>
+<div class="pilha-pequena centro">
+<p class="subtitulo">Ainda não tem conta?</p>
+<a class="botao botao-secundario botao-largo" href="/cadastro">Criar conta com convite</a>
+</div>
+<p class="nota centro">Sua senha é guardada como hash — nem o administrador do app consegue lê-la.</p>
+{% endblock %}

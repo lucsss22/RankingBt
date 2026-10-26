@@ -1,0 +1,97 @@
+{% extends "base.html" %}
+{% import "_componentes.html" as c with context %}
+{% block titulo %}Início{% endblock %}
+{% block conteudo %}
+<div class="cabecalho">
+<div class="pilha-pequena">
+<h1 class="titulo-pagina">Olá, {{ atleta.nome.split(' ')[0] }}</h1>
+<p class="subtitulo">{% if dados %}Ranking ITF {{ genero_rotulo }} de {{ data_ranking }}{% else %}Ranking ITF {{ genero_rotulo }} ainda não baixado{% endif %}</p>
+</div>
+{% if atleta.admin %}
+<form method="post" action="/ranking/atualizar">
+<input type="hidden" name="csrf" value="{{ csrf }}"><input type="hidden" name="genero" value="{{ atleta.genero }}">
+<button type="submit" class="botao botao-secundario"{% if coleta and coleta.rodando %} disabled{% endif %}>{{ c.icone('atualizar', 18) }}Atualizar ranking da ITF</button>
+</form>
+{% endif %}
+</div>
+
+{{ c.mensagens() }}
+{% if coleta %}
+{% if coleta.rodando %}{{ c.aguardando('ranking:' ~ atleta.genero, 'Baixando o ranking ' ~ genero_rotulo ~ ' da ITF (há ' ~ coleta_minutos ~ ' min). A página atualiza sozinha.', '/inicio') }}
+{% elif coleta.ok %}<p class="mensagem mensagem-ok" role="status">Ranking {{ genero_rotulo }} atualizado.</p>
+{% else %}<p class="mensagem mensagem-erro" role="alert">O download do ranking falhou{% if coleta.erro %} ({{ coleta.erro }}){% endif %}. Tente de novo em alguns minutos.</p>{% endif %}
+{% endif %}
+
+<div class="grade">
+{% if resumo %}
+<section class="cartao">
+<span class="rotulo">Ranking ITF · {{ genero_rotulo }}</span>
+<div class="linha-rank">
+<span class="numero numero-gigante">{{ c.rank(resumo.rank) }}</span>
+<div class="mini-numeros">
+<div><span class="numero">{{ resumo.pontos }}</span><span class="legenda">pontos</span></div>
+<div><span class="numero">{{ resumo.torneios if resumo.torneios is not none else '?' }}</span><span class="legenda">torneios</span></div>
+</div>
+</div>
+<div class="pilha-pequena">
+<div class="segmentos" role="img" aria-label="{{ resumo.contando }} de {{ melhores }} resultados contando">
+{% for i in range(melhores) %}<span{% if i < resumo.contando %} class="cheio"{% endif %}></span>{% endfor %}
+</div>
+<span class="legenda">{{ resumo.contando }} de {{ melhores }} resultados contando{% if resumo.contando < melhores %} — todo torneio novo soma inteiro{% else %} — torneio novo só soma se superar o pior{% endif %}</span>
+</div>
+</section>
+{% elif dados %}
+<section class="cartao">
+<span class="rotulo">Ranking ITF · {{ genero_rotulo }}</span>
+<h2 class="titulo-cartao">Vincule sua conta</h2>
+<p class="subtitulo">Encontre seu nome no ranking da ITF para ver sua posição e estimar para onde vai.</p>
+<a class="botao botao-primario" href="/perfil/itf">Procurar meu nome</a>
+</section>
+{% else %}
+<section class="cartao">
+<span class="rotulo">Ranking ITF · {{ genero_rotulo }}</span>
+<h2 class="titulo-cartao">Ranking ainda não baixado</h2>
+<p class="subtitulo">{% if atleta.admin %}Use "Atualizar ranking da ITF" acima — leva de 1 a 3 minutos.{% else %}O administrador do app precisa baixar o ranking {{ genero_rotulo }}.{% endif %}</p>
+</section>
+{% endif %}
+
+<section class="cartao cartao-cta">
+<h2 class="titulo-cartao">Jogou um torneio?</h2>
+<p>Veja para onde você vai no ranking pela colocação ou pelos pontos ganhos.</p>
+<a class="botao botao-cta" href="/estimar">Estimar meu ranking{{ c.icone('seta', 20) }}</a>
+</section>
+
+<section class="cartao">
+<div class="cartao-topo"><h2 class="titulo-secao">Quanto vale cada rodada</h2><span class="legenda">BT200</span></div>
+<div class="rodadas">
+{% for r in preview %}
+<div class="rodada"><span class="pill">{{ r.codigo }}</span><span class="barra"><span style="width: {{ r.pct }}%"></span></span><span class="numero">{{ r.pontos }}</span></div>
+{% endfor %}
+</div>
+<a href="/pontos">Ver tabela completa →</a>
+</section>
+</div>
+
+<div class="grade grade-larga">
+<section class="cartao">
+<div class="cartao-topo"><h2 class="titulo-secao">Últimos resultados</h2>{% if resultados %}<a href="/resultados">Ver todos</a>{% endif %}</div>
+{% if resultados %}
+<ul class="lista-resultados">
+{% for r in resultados %}<li><div class="pilha-mini"><span class="resultado-nome">{{ r.torneio }}</span><span class="legenda">{{ r.categoria or '' }} {{ r.rodada or '' }}</span></div><span class="numero">+{{ r.pontos }}</span></li>{% endfor %}
+</ul>
+{% else %}
+<p class="vazio">Nenhum resultado salvo ainda. Ao estimar seu ranking, salve o torneio para acompanhar aqui.</p>
+{% endif %}
+</section>
+<section class="cartao">
+<h2 class="titulo-secao">Meta de ranking</h2>
+<p class="subtitulo">Escolha a posição que quer alcançar e veja quantos pontos faltam e até que rodada chegar em cada torneio.</p>
+<a class="botao botao-secundario botao-alinhado" href="/meta">{{ c.icone('meta', 18) }}Definir minha meta</a>
+</section>
+<section class="cartao">
+<h2 class="titulo-secao">Tierlist de duplas</h2>
+<p class="subtitulo">Cole a lista de inscritas de um torneio e veja quem entra direto na chave e quem joga o qualifying.</p>
+<a class="botao botao-secundario botao-alinhado" href="/tierlist">Montar tierlist</a>
+</section>
+</div>
+{% endblock %}

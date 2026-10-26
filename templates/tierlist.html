@@ -1,0 +1,201 @@
+{% extends "base.html" %}
+{% import "_componentes.html" as c with context %}
+{% block titulo %}Tierlist de duplas{% endblock %}
+{% macro grupo(faixa) -%}{{ 'principal' if faixa in ('cabeca', 'principal') else ('qualy' if faixa in ('cabeca_qualy', 'qualy') else 'fora') }}{%- endmacro %}
+{% block conteudo %}
+<div class="pilha-pequena">
+<h1 class="titulo-pagina">Tierlist de duplas</h1>
+<p class="subtitulo">Ordem de entrada da ITF: soma dos ranks, desempate pelo melhor atleta. Quem entra direto, quem é cabeça e quem joga o qualifying.</p>
+</div>
+{{ c.mensagens(erro) }}
+
+<div class="tierlist-layout">
+<form method="post" action="/tierlist" class="cartao form area-lista">
+<h2 class="titulo-secao">Lista do torneio</h2>
+<input type="hidden" name="csrf" value="{{ csrf }}">
+<div class="form-linha">
+<div class="campo">
+<label for="genero">Ranking</label>
+<select id="genero" name="genero">
+{% for codigo, rotulo in generos.items() %}<option value="{{ codigo }}"{% if codigo == form.genero %} selected{% endif %}>{{ rotulo | capitalize }}</option>{% endfor %}
+</select>
+</div>
+<div class="campo">
+<label for="chave">Tamanho da chave</label>
+<select id="chave" name="chave">
+{% for ch in chaves %}<option value="{{ ch.id }}"{% if ch.id == chave.id %} selected{% endif %}>{{ ch.descricao }}</option>{% endfor %}
+</select>
+</div>
+</div>
+{{ c.campo('corte', 'Vagas diretas na chave principal', form.corte, tipo='number', ajuda='Regulamento: ' ~ diretas_regulamento ~ '. Aumente se sobrar convite (wild card).', atributos='inputmode="numeric" min="1" placeholder="' ~ diretas_regulamento ~ '"') }}
+<div class="campo">
+<label for="lista">Lista de duplas</label>
+<textarea id="lista" name="lista" rows="8" spellcheck="false" aria-describedby="lista-ajuda" placeholder="1&#10;ALMEIDA Ricardo&#10;NADAL Rafael&#10;2&#10;ALVES FRANCA Gustavo&#10;DUARTE Joao Luiz">{{ form.lista }}</textarea>
+<span class="ajuda" id="lista-ajuda">Uma linha por item: número da dupla, jogador 1, jogador 2 — como no site da ITF. Fica salva na sua conta.</span>
+</div>
+<button type="submit" class="botao botao-primario">Salvar e montar</button>
+</form>
+
+<section class="cartao area-resultado" id="resultado">
+<div class="cartao-topo">
+<h2 class="titulo-secao">Resultado</h2>
+{% if linhas %}<span class="legenda">{{ encontradas }}/{{ linhas | length }} duplas no ranking · {{ data_ranking }}</span>{% endif %}
+</div>
+{% if linhas %}
+{% if suspeito %}<p class="mensagem mensagem-erro" role="alert">Poucas duplas foram encontradas. Confira se escolheu o ranking certo e se os nomes estão escritos como na ITF.</p>{% endif %}
+<div class="legenda-faixas">
+<span><span class="faixa faixa-cabeca">Cabeça</span> 1ª–{{ vagas.cabecas }}ª</span>
+<span><span class="faixa faixa-principal">Chave</span> até a {{ vagas.diretas }}ª</span>
+{% if chave.qualifying %}
+<span><span class="faixa faixa-cabeca_qualy">Cab. qualy</span> até a {{ vagas.cabecas_qualy }}ª</span>
+<span><span class="faixa faixa-qualy">Qualy</span> até a {{ vagas.qualy }}ª</span>
+{% endif %}
+</div>
+<div class="tabela-rolagem">
+<table class="tabela tabela-tier">
+<thead><tr><th scope="col">#</th><th scope="col" class="col-faixa">Faixa</th><th scope="col">Dupla</th><th scope="col">Σ</th></tr></thead>
+<tbody>
+{% for l in linhas %}
+{% if not loop.first and grupo(l.faixa) != grupo(loop.previtem.faixa) %}
+<tr class="linha-corte"><td colspan="4">{{ 'Qualifying a partir daqui' if grupo(l.faixa) == 'qualy' else 'Fora da chave a partir daqui' }}</td></tr>
+{% endif %}
+<tr class="{% if l.minha %}destaque{% endif %}{% if l.simulada %} simulada{% endif %}">
+<td class="numero">{{ l.posicao }}</td>
+<td class="col-faixa"><span class="faixa faixa-{{ l.faixa }}">{{ faixas[l.faixa] }}</span></td>
+<td>
+<div class="dupla"><span>{{ l.p1 }}</span><span class="legenda">{{ c.rank(l.r1) }}</span></div>
+<div class="dupla"><span>{{ l.p2 }}</span><span class="legenda">{{ c.rank(l.r2) }}</span></div>
+<div class="etiquetas-linha">
+<span class="faixa faixa-{{ l.faixa }} faixa-celular">{{ faixas_curtas[l.faixa] }}</span>
+<span class="legenda">nº {{ l.num }}</span>
+{% if l.simulada %}<span class="etiqueta-mini etiqueta-simulada">simulada</span>{% endif %}
+{% if l.minha %}<span class="etiqueta-mini etiqueta-sua">sua dupla</span>{% endif %}
+{% if l.empate %}<span class="etiqueta-mini" title="Mesma soma e mesmo melhor atleta: a ITF sorteia">empate · sorteio</span>{% endif %}
+{% if l.simulada %}
+<form method="post" action="/tierlist/simuladas/{{ l.simulada }}/excluir" class="form-inline">
+<input type="hidden" name="csrf" value="{{ csrf }}">
+<button type="submit" class="link-botao">Excluir</button>
+</form>
+{% endif %}
+</div>
+</td>
+<td class="numero">{{ l.soma if l.soma is not none else '—' }}</td>
+</tr>
+{% endfor %}
+</tbody>
+</table>
+</div>
+{% else %}
+<p class="vazio">Cole a lista do torneio ou adicione uma dupla simulada para ver a tierlist.</p>
+{% endif %}
+</section>
+
+<form method="post" action="/tierlist/simuladas" class="cartao form area-simulada" novalidate>
+<h2 class="titulo-secao">Adicionar dupla simulada</h2>
+<p class="legenda">Uma dupla que não está na lista, para ver onde ela entraria. Fica salva até você excluir.</p>
+<input type="hidden" name="csrf" value="{{ csrf }}">
+{# Autocompletar (app.js): escolher um nome da lista guarda o playerId em
+   itf1/itf2 e o rank passa a vir do ranking do dia. Sem JavaScript, vale o
+   nome digitado, como antes. #}
+{% for n in (1, 2) %}
+{% set escolhido = (escolhidos or {}).get(n) %}
+{% set campo_nome = 'jogador' ~ n %}
+<fieldset class="grupo-atleta" data-atleta-ranking>
+<legend>Atleta {{ n }}</legend>
+{% if n == 1 and eu %}
+<label class="opcao"><input type="checkbox" name="eu1" value="1" data-sou-eu="{{ eu | tojson | forceescape }}"{% if simulada_form.get('eu1') %} checked{% endif %}> Sou eu · {{ c.rank(eu.rank) }}</label>
+{% endif %}
+<div class="campo campo-busca">
+<label for="{{ campo_nome }}">Nome</label>
+<div class="busca-caixa">
+<input id="{{ campo_nome }}" name="{{ campo_nome }}" type="text" value="{{ simulada_form.get(campo_nome) or '' }}" required autocomplete="off" spellcheck="false"
+ role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls="sugestoes{{ n }}" data-buscar-ranking="{{ form.genero }}"
+ aria-describedby="{{ campo_nome }}-{{ 'erro' if erros_simulada.get(campo_nome) else 'ajuda' }}"{% if erros_simulada.get(campo_nome) %} aria-invalid="true"{% endif %}>
+<ul id="sugestoes{{ n }}" class="sugestoes" role="listbox" aria-label="Atletas do ranking" hidden></ul>
+</div>
+{% if erros_simulada.get(campo_nome) %}<span class="erro-campo" id="{{ campo_nome }}-erro">{{ erros_simulada[campo_nome] }}</span>
+{% else %}<span class="ajuda" id="{{ campo_nome }}-ajuda">Digite o nome e escolha na lista do ranking {{ generos[form.genero] if form.genero in generos else '' }}.</span>{% endif %}
+</div>
+<input type="hidden" name="itf{{ n }}" value="{{ escolhido.id if escolhido else '' }}">
+<p class="escolhido" data-escolhido{% if not escolhido %} hidden{% endif %}>{{ c.icone('ok', 16) }}<span data-escolhido-texto>{% if escolhido %}No ranking: {{ c.rank(escolhido.rank) }} · {{ escolhido.pontos }} pts{% if escolhido.pais %} · {{ escolhido.pais }}{% endif %}{% endif %}</span></p>
+<div class="form-linha" data-campos-manuais{% if escolhido %} hidden{% endif %}>
+{{ c.campo('rank' ~ n, 'Rank', simulada_form.get('rank' ~ n), tipo='number', erros=erros_simulada, atributos='inputmode="numeric" min="1"') }}
+{{ c.campo('pontos' ~ n, 'ou pontos', simulada_form.get('pontos' ~ n), tipo='number', erros=erros_simulada, atributos='inputmode="numeric" min="1"') }}
+</div>
+</fieldset>
+{% endfor %}
+<p class="legenda">Quem não está no ranking: digite o nome e, se quiser, o rank ou os pontos.</p>
+<button type="submit" class="botao botao-secundario botao-alinhado">{{ c.icone('mais', 18) }}Adicionar dupla</button>
+{% if simuladas %}
+<ul class="lista-simples">
+{% for s in simuladas %}
+<li><span>S{{ loop.index }} · {{ s.jogador1 }} / {{ s.jogador2 }}</span></li>
+{% endfor %}
+</ul>
+{% endif %}
+</form>
+
+<section class="cartao area-parceiro" id="parceiro">
+<h2 class="titulo-secao">Ranking mínimo do parceiro</h2>
+<p class="legenda">Escolha o atleta e onde quer chegar nesta lista: o app calcula o pior rank que o parceiro pode ter.</p>
+<form method="get" action="/tierlist#parceiro" class="form">
+<div class="form-linha">
+{{ c.campo('atleta', 'Atleta', q.get('atleta', ''), ajuda='Vazio = você (' ~ (atleta.nome_itf or atleta.nome) ~ ')') }}
+{{ c.campo('rank_atleta', 'ou o rank dele', q.get('rank_atleta', ''), tipo='number', atributos='inputmode="numeric" min="1"') }}
+</div>
+<div class="form-linha">
+<div class="campo">
+<label for="alvo">Quero chegar em</label>
+<select id="alvo" name="alvo">
+{% for chave_faixa, rotulo in faixas.items() if chave_faixa != 'fora' and (chave.qualifying or chave_faixa in ('cabeca', 'principal')) %}
+<option value="{{ chave_faixa }}"{% if q.get('alvo') == chave_faixa %} selected{% endif %}>{{ rotulo }} (até a {{ vagas.ultima_posicao(chave_faixa) }}ª)</option>
+{% endfor %}
+<option value="posicao"{% if q.get('alvo') == 'posicao' %} selected{% endif %}>Posição exata…</option>
+</select>
+</div>
+{{ c.campo('posicao', 'Posição (se exata)', q.get('posicao', ''), tipo='number', atributos='inputmode="numeric" min="1"') }}
+</div>
+{% if parceiro and parceiro.paises %}
+<div class="campo">
+<label for="pais">Atletas reais de</label>
+<select id="pais" name="pais">
+<option value=""{% if not parceiro.pais %} selected{% endif %}>Todos os países</option>
+{% for p in parceiro.paises %}<option value="{{ p }}"{% if p == parceiro.pais %} selected{% endif %}>{{ p }}</option>{% endfor %}
+</select>
+</div>
+{% endif %}
+<button type="submit" class="botao botao-primario botao-alinhado"{% if not linhas %} disabled{% endif %}>Calcular</button>
+{% if not linhas %}<p class="legenda">Monte a lista primeiro.</p>{% endif %}
+</form>
+
+{% if parceiro %}
+{% if parceiro.erro %}
+<p class="mensagem mensagem-erro" role="alert">{{ parceiro.erro }}</p>
+{% else %}
+<div class="resultado-parceiro" aria-live="polite">
+<p class="legenda">{{ parceiro.atleta }} · {{ c.rank(parceiro.meu_rank) }} · alvo: {{ parceiro.alvo_rotulo }} (até a {{ parceiro.alvo }}ª)</p>
+{% if parceiro.rank_maximo is none %}
+<p class="mensagem mensagem-erro">Não dá: mesmo com o nº 1 do mundo a dupla ficaria em {{ parceiro.melhor_posicao }}º.</p>
+{% elif parceiro.qualquer_ranqueado %}
+<p class="mensagem mensagem-ok">Qualquer parceiro com ranking serve.</p>
+{% else %}
+<p class="destaque-grande"><span class="legenda">Parceiro precisa ser</span><span class="numero numero-grande destaque">#{{ parceiro.rank_maximo }}</span><span class="legenda">ou melhor</span></p>
+{% endif %}
+<p class="legenda">Com parceiro sem ranking a dupla ficaria em {{ parceiro.posicao_sem_ranking }}º. Empate total conta como derrota (a ITF sorteia).</p>
+{% if parceiro.reais %}
+<h3 class="titulo-secao">Atletas que atendem{% if parceiro.pais %} · {{ parceiro.pais }}{% endif %}</h3>
+<ul class="lista-resultados">
+{% for j in parceiro.reais %}
+<li><div class="pilha-mini"><span class="resultado-nome">{{ j.nome }}</span><span class="legenda">{{ j.pais }} · {{ j.pontos }} pts</span></div><span class="numero">#{{ j.rank }}</span></li>
+{% endfor %}
+</ul>
+<p class="legenda">Os mais próximos do limite primeiro; quem já está na lista fica de fora.</p>
+{% elif parceiro.rank_maximo and not parceiro.qualquer_ranqueado %}
+<p class="vazio">Nenhum atleta{% if parceiro.pais %} de {{ parceiro.pais }}{% endif %} fora da lista atende.</p>
+{% endif %}
+</div>
+{% endif %}
+{% endif %}
+</section>
+</div>
+{% endblock %}

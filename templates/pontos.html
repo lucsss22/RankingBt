@@ -1,0 +1,155 @@
+{% extends "base.html" %}
+{% import "_componentes.html" as c with context %}
+{% block titulo %}Pontos por rodada{% endblock %}
+{% block conteudo %}
+<div class="pilha-pequena">
+<h1 class="titulo-pagina">Pontos por rodada</h1>
+<p class="subtitulo">Tabela ITF {{ tabela.versao }}</p>
+</div>
+{{ c.mensagens() }}
+
+<nav class="segmentado" aria-label="Como escolher o torneio">
+<a href="/pontos"{% if modo == 'torneio' %} aria-current="true"{% endif %}>Torneio real</a>
+<a href="/pontos?modo=manual"{% if modo == 'manual' %} aria-current="true"{% endif %}>Manual</a>
+</nav>
+
+{% if modo == 'manual' %}
+<nav class="chips" aria-label="Categoria do torneio">
+{% for cat in categorias %}
+<a class="chip" href="/pontos?cat={{ cat.id }}"{% if cat.id == categoria.id %} aria-current="true"{% endif %}>{{ cat.nome.split(' / ')[0] }}</a>
+{% endfor %}
+</nav>
+
+{% if not categoria.get('por_colocacao', true) %}
+<section class="cartao">
+<h2 class="titulo-secao">{{ categoria.nome }}</h2>
+<p class="subtitulo">Esta categoria não pontua por rodada, e sim por vitória:</p>
+<div class="rodadas">
+{% for item in categoria.regra_especial %}
+<div class="rodada rodada-texto"><span>{{ item.descricao }}</span><span class="numero">{{ item.pontos }}</span></div>
+{% endfor %}
+</div>
+</section>
+{% else %}
+<form method="get" action="/pontos" class="form-filtro">
+<input type="hidden" name="cat" value="{{ categoria.id }}">
+<div class="campo">
+<label for="chave">{{ categoria.nome }} — tamanho da chave</label>
+<select id="chave" name="chave" data-auto-enviar>
+{% for ch in categoria.chaves %}<option value="{{ ch.id }}"{% if ch.id == chave.id %} selected{% endif %}>Chave de {{ ch.chave_principal }}{% if ch.qualifying %} · qualifying de {{ ch.qualifying }}{% else %} · sem qualifying{% endif %}</option>{% endfor %}
+</select>
+</div>
+<noscript><button type="submit" class="botao botao-secundario">Ver</button></noscript>
+</form>
+{% if chave.get('obs') %}<p class="mensagem mensagem-info">{{ chave.obs }}</p>{% endif %}
+{% include "_tabela_pontos.html" %}
+{% endif %}
+
+{% elif torneio is defined %}
+{# ── um torneio do calendario ── #}
+<a href="/pontos" class="voltar">← Outros torneios</a>
+<section class="cartao">
+<span class="rotulo">{{ torneio.category }} · {{ torneio.hostNationCode }}</span>
+<h2 class="titulo-cartao">{{ torneio.tournamentName }}</h2>
+<p class="subtitulo">{{ c.data(torneio.inicio) }} a {{ c.data(torneio.fim) }} · {{ torneio.location }}{% if torneio.prizeMoney %} · {{ torneio.prizeMoney }}{% endif %}</p>
+{% if categoria is defined and chave %}
+<p>
+{% if chave_automatica %}{{ c.icone('ok', 18) }} Chave da ITF: <strong>{{ descricao_chave }}</strong> ({{ generos[genero] }}).
+{% else %}Chave ainda não publicada pela ITF: escolha o tamanho abaixo.{% endif %}
+</p>
+{% endif %}
+<div class="linha-botoes">
+{% for codigo, rotulo in generos.items() %}<a class="chip" href="/pontos?torneio={{ chave_torneio }}&amp;genero={{ codigo }}"{% if codigo == genero %} aria-current="true"{% endif %}>{{ rotulo | capitalize }}</a>{% endfor %}
+</div>
+</section>
+
+{% if tarefa_chave %}
+{{ c.aguardando('chave:' ~ chave_torneio, 'Buscando a chave na ITF… a página atualiza sozinha.', '/pontos?torneio=' ~ chave_torneio) }}
+{% elif not chave_automatica and pode_buscar_chave and categoria is defined and chave %}
+<form method="post" action="/itf/chave" class="linha-botoes">
+<input type="hidden" name="csrf" value="{{ csrf }}"><input type="hidden" name="torneio" value="{{ chave_torneio }}">
+<button type="submit" class="botao botao-secundario">{{ c.icone('atualizar', 18) }}Buscar chave na ITF</button>
+</form>
+{% elif chave_itf and not chave_itf.publicada %}
+<p class="legenda">A ITF ainda não publicou a chave deste torneio (consultado em {{ chave_consultada_em.strftime('%d/%m %H:%M') }}). Tente de novo mais perto do torneio.</p>
+{% endif %}
+
+{% if motivo and categoria is not defined %}
+<p class="mensagem mensagem-info">{{ motivo }}</p>
+{% elif categoria is defined and not categoria.get('por_colocacao', true) %}
+<section class="cartao">
+<p class="subtitulo">{{ categoria.nome }} não pontua por rodada, e sim por vitória:</p>
+<div class="rodadas">{% for item in categoria.regra_especial %}<div class="rodada rodada-texto"><span>{{ item.descricao }}</span><span class="numero">{{ item.pontos }}</span></div>{% endfor %}</div>
+</section>
+{% elif chave %}
+{% if not chave_automatica %}
+<form method="get" action="/pontos" class="form-filtro">
+<input type="hidden" name="torneio" value="{{ chave_torneio }}"><input type="hidden" name="genero" value="{{ genero }}">
+<div class="campo">
+<label for="chave_manual">{{ categoria.nome }} — tamanho da chave</label>
+<select id="chave_manual" name="chave_manual" data-auto-enviar>
+{% for ch in categoria.chaves %}<option value="{{ ch.id }}"{% if ch.id == chave.id %} selected{% endif %}>Chave de {{ ch.chave_principal }}{% if ch.qualifying %} · qualifying de {{ ch.qualifying }}{% else %} · sem qualifying{% endif %}</option>{% endfor %}
+</select>
+</div>
+<noscript><button type="submit" class="botao botao-secundario">Ver</button></noscript>
+</form>
+{% endif %}
+{% include "_tabela_pontos.html" %}
+<a class="botao botao-primario botao-alinhado" href="/estimar?modo=colocacao&amp;cat={{ categoria.id }}&amp;chave={{ chave.id }}&amp;torneio_nome={{ torneio.tournamentName | urlencode }}">{{ c.icone('estimar', 18) }}Estimar meu ranking neste torneio</a>
+{% endif %}
+
+{% else %}
+{# ── busca no calendario ── #}
+{% if tarefa_calendario %}
+{{ c.aguardando('calendario', 'Baixando o calendário da ITF… a página atualiza sozinha.', '/pontos') }}
+{% elif not calendario.existe %}
+<section class="cartao">
+<h2 class="titulo-secao">Calendário da ITF</h2>
+<p class="subtitulo">Baixe o calendário uma vez para escolher um torneio real. Leva de 1 a 3 minutos.</p>
+<form method="post" action="/itf/calendario"><input type="hidden" name="csrf" value="{{ csrf }}">
+<button type="submit" class="botao botao-primario">{{ c.icone('atualizar', 18) }}Baixar calendário</button></form>
+<p class="legenda">Ou use a aba <a href="/pontos?modo=manual">Manual</a>.</p>
+</section>
+{% else %}
+<form method="get" action="/pontos" class="cartao form">
+<div class="form-linha">
+{{ c.campo('busca', 'Buscar torneio', busca, tipo='search', atributos='placeholder="Ex: Floripa, BT200, Maresias"') }}
+<div class="campo">
+<label for="pais">País</label>
+<select id="pais" name="pais" data-auto-enviar>
+<option value=""{% if not pais %} selected{% endif %}>Todos</option>
+{% for p in paises %}<option value="{{ p }}"{% if p == pais %} selected{% endif %}>{{ p }}</option>{% endfor %}
+</select>
+</div>
+<div class="campo">
+<label for="periodo">Quando</label>
+<select id="periodo" name="periodo" data-auto-enviar>
+<option value="proximos"{% if periodo == 'proximos' %} selected{% endif %}>Próximos</option>
+<option value="recentes"{% if periodo == 'recentes' %} selected{% endif %}>Últimos 60 dias</option>
+<option value="todos"{% if periodo == 'todos' %} selected{% endif %}>Todos</option>
+</select>
+</div>
+</div>
+<button type="submit" class="botao botao-secundario botao-alinhado">{{ c.icone('busca', 18) }}Buscar</button>
+</form>
+{% if torneios %}
+<ul class="lista-torneios">
+{% for t in torneios %}
+<li><a href="/pontos?torneio={{ t.tournamentKey }}">
+<span class="torneio-data">{{ t.inicio.strftime('%d/%m') if t.inicio else '' }}</span>
+<span class="pilha-mini"><span class="resultado-nome">{{ t.tournamentName }}</span><span class="legenda">{{ t.location }} · {{ t.hostNationCode }}</span></span>
+<span class="pill">{{ t.category }}</span>
+</a></li>
+{% endfor %}
+</ul>
+{% else %}
+<p class="vazio">Nenhum torneio encontrado com esses filtros.</p>
+{% endif %}
+<p class="legenda">Calendário da ITF de {{ calendario.coletado_em.strftime('%d/%m/%Y %H:%M') }}.
+{% if not calendario.fresco %}
+<form method="post" action="/itf/calendario" class="form-inline"><input type="hidden" name="csrf" value="{{ csrf }}"><button type="submit" class="link-botao">Atualizar</button></form>
+{% endif %}
+</p>
+{% endif %}
+{% endif %}
+{% endblock %}

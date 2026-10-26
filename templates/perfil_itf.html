@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+{% import "_componentes.html" as c with context %}
+{% block titulo %}Vincular ao ranking ITF{% endblock %}
+{% block conteudo %}
+<div class="pilha-pequena">
+<h1 class="titulo-pagina">Vincular ao ranking ITF</h1>
+<p class="subtitulo">Procure seu nome no ranking {{ genero_rotulo }}. Depois de vincular, o app acha você sem depender do nome.</p>
+</div>
+
+{% if not dados %}
+<p class="mensagem mensagem-info">O ranking {{ genero_rotulo }} ainda não foi baixado. {% if atleta.admin %}Atualize na <a href="/inicio">tela inicial</a>.{% else %}Peça ao administrador.{% endif %}</p>
+{% else %}
+<div class="grade grade-larga grade-topo">
+<form method="get" action="/perfil/itf" class="cartao form">
+{{ c.campo('nome', 'Nome como aparece na ITF', nome, obrigatorio=true, ajuda='SOBRENOME Nome, ex: SILVA Joao') }}
+<button type="submit" class="botao botao-secundario botao-alinhado">Procurar</button>
+</form>
+
+{% if candidato %}
+<section class="cartao">
+<span class="rotulo">Encontrei</span>
+<h2 class="titulo-cartao">{{ candidato.nome_itf }}</h2>
+<p class="subtitulo">{{ candidato.pais }} · nascido(a) em {{ candidato.nascimento }} · {{ c.rank(candidato.rank) }} · {{ candidato.pontos }} pts</p>
+<form method="post" action="/perfil/itf">
+<input type="hidden" name="csrf" value="{{ csrf }}">
+<input type="hidden" name="player_id" value="{{ candidato.player_id }}">
+<button type="submit" class="botao botao-primario">Sou eu — vincular</button>
+</form>
+<p class="legenda">Não é você? Procure de novo com o nome escrito como na ITF.</p>
+</section>
+{% else %}
+<p class="vazio">Não achei "{{ nome }}" no ranking {{ genero_rotulo }}. Confira sobrenomes e acentos como aparecem no site da ITF.</p>
+{% endif %}
+</div>
+{% endif %}
+{% endblock %}

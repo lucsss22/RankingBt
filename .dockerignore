@@ -1,0 +1,17 @@
+.git
+.gitignore
+infra/
+*.db
+*.db-*
+*.key
+*.pem
+segredo.key
+__pycache__/
+*.pyc
+.venv/
+venv/
+testes/
+backups/
+cache_itf/
+ranking_itf_*.json
+*.log

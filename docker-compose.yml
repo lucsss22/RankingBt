@@ -1,0 +1,49 @@
+services:
+  app:
+    build: .
+    container_name: bt-app
+    networks:
+      interna:
+        ipv4_address: 172.28.0.10
+    volumes:
+      - dados:/dados
+    restart: unless-stopped
+
+  proxy:
+    image: nginx:1.27-alpine
+    container_name: bt-proxy
+    depends_on:
+      - app
+    ports:
+      - "80:80"
+      - "443:443"
+    networks:
+      interna:
+        ipv4_address: 172.28.0.20
+      externa:
+        ipv4_address: 172.29.0.20
+    volumes:
+      - ./infra/nginx:/etc/nginx/conf.d:ro
+      - ./infra/certs:/etc/nginx/tls:ro
+    restart: unless-stopped
+
+  atacante:
+    image: alpine:3.21
+    container_name: bt-atacante
+    networks:
+      externa:
+        ipv4_address: 172.29.0.40
+    command: sleep infinity
+
+networks:
+  interna:
+    ipam:
+      config:
+        - subnet: 172.28.0.0/24
+  externa:
+    ipam:
+      config:
+        - subnet: 172.29.0.0/24
+
+volumes:
+  dados:

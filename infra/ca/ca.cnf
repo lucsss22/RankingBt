@@ -1,0 +1,11 @@
+[req]
+prompt = no
+distinguished_name = dn
+
+[dn]
+C = BR
+ST = Parana
+L = Curitiba
+O = RankingBt
+OU = Autoridade Certificadora
+CN = RankingBt Root CA

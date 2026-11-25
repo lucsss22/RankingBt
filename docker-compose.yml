@@ -28,14 +28,13 @@ services:
     restart: unless-stopped
 
   atacante:
-    image: alpine:3.21
+    build:
+      context: .
+      dockerfile: Dockerfile.atacante
     container_name: bt-atacante
     networks:
       externa:
         ipv4_address: 172.29.0.40
-    command: sleep infinity
-
-
 
   defesa:
     build:
@@ -53,7 +52,7 @@ services:
       - dados:/dados:ro
     restart: unless-stopped
 
-    
+
 networks:
   interna:
     ipam:

@@ -35,6 +35,25 @@ services:
         ipv4_address: 172.29.0.40
     command: sleep infinity
 
+
+
+  defesa:
+    build:
+      context: .
+      dockerfile: Dockerfile.defesa
+    container_name: bt-defesa
+    depends_on:
+      - proxy
+    network_mode: "service:proxy"
+    cap_drop:
+      - ALL
+    cap_add:
+      - NET_ADMIN
+    volumes:
+      - dados:/dados:ro
+    restart: unless-stopped
+
+    
 networks:
   interna:
     ipam:

@@ -43,6 +43,7 @@ from fastapi.templating import Jinja2Templates
 from starlette.exceptions import HTTPException
 
 import atletas
+import auditoria
 import estimativa
 import itf_beach_tennis_tierlist as itf
 import itf_dados
@@ -481,6 +482,8 @@ def exigir_atleta(request: Request, conn=Depends(banco)) -> atletas.Atleta:
 
 def exigir_admin(atleta: atletas.Atleta = Depends(exigir_atleta)) -> atletas.Atleta:
     if not atleta.admin:
+        auditoria.registrar("ACESSO_NEGADO", usuario=atleta.email,
+                            detalhe="rota exclusiva de administrador")
         raise HTTPException(403, "Só administradores acessam esta página.")
     return atleta
 
@@ -491,11 +494,13 @@ def token_csrf(request: Request) -> str:
     sessao = request.cookies.get(COOKIE_SESSAO, "")
     return hmac.new(SEGREDO, sessao.encode("utf-8"), "sha256").hexdigest()[:32]
 
-
 def conferir_csrf(request: Request, csrf: str = Form("")) -> None:
     if not hmac.compare_digest(csrf, token_csrf(request)):
+        auditoria.registrar("CSRF_INVALIDO", ip=origem_do_pedido(request),
+                            detalhe=request.url.path)
         raise HTTPException(400, "Formulário expirado. Volte, recarregue a página e tente de novo.")
 
+    
 
 _FALHAS_IP: dict[str, collections.deque] = {}
 _TRAVA_FALHAS = threading.Lock()
@@ -522,10 +527,12 @@ def _falhas_recentes(origem: str, agora: float) -> collections.deque:
 def conferir_limite_de_falhas(request: Request) -> None:
     with _TRAVA_FALHAS:
         if len(_falhas_recentes(origem_do_pedido(request), time.monotonic())) >= FALHAS_POR_IP:
+            auditoria.registrar("LIMITE_IP", ip=origem_do_pedido(request),
+                                detalhe=f"{FALHAS_POR_IP} falhas na janela de {JANELA_FALHAS_IP}s")
             raise HTTPException(429, "Muitas tentativas erradas deste aparelho. "
                                      "Espere alguns minutos e tente de novo.")
 
-
+        
 def registrar_falha(request: Request) -> None:
     agora = time.monotonic()
     with _TRAVA_FALHAS:
@@ -704,8 +711,12 @@ def entrar_enviar(request: Request, email: str = Form(""), senha: str = Form("")
         atleta = atletas.autenticar(conn, email, senha)
     except atletas.ErroLogin as exc:
         registrar_falha(request)
+        auditoria.registrar("LOGIN_FALHOU", ip=origem_do_pedido(request),
+                            usuario=email, detalhe=str(exc))
         return pagina(request, "entrar.html", status_code=400, erro=str(exc), email=email)
+    auditoria.registrar("LOGIN_OK", ip=origem_do_pedido(request), usuario=atleta.email)
     return gravar_sessao(ir("/inicio"), atletas.criar_sessao(conn, atleta.id))
+
 
 
 @app.get("/cadastro")
@@ -743,10 +754,10 @@ def cadastro_enviar(
 @app.post("/sair")
 def sair(request: Request, _=Depends(conferir_csrf), conn=Depends(banco)):
     atletas.encerrar_sessao(conn, request.cookies.get(COOKIE_SESSAO))
+    auditoria.registrar("LOGOUT", ip=origem_do_pedido(request))
     resposta = ir("/entrar?msg=saiu")
     resposta.delete_cookie(COOKIE_SESSAO, path="/")
     return resposta
-
 
 # ═══════════════════════════════════════════════════════════════════════════════
 # INICIO

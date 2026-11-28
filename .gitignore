@@ -6,6 +6,9 @@ atletas.db
 *.db-wal
 *.db-shm
 *.sqlite
+# Trava do log de auditoria: arquivo de controle, nunca conteudo.
+auditoria.lock
+*.lock
 # Chave que assina os formularios (CSRF). Quem tiver ela forja formularios.
 segredo.key
 *.key

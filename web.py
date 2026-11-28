@@ -80,6 +80,9 @@ MINUTOS_ENTRE_ATUALIZACOES = 10  # atividade do mesmo atleta na ITF
 # tambem ha um limite de falhas por endereco de rede.
 FALHAS_POR_IP = 10
 JANELA_FALHAS_IP = 10 * 60      # segundos
+# Quem insiste depois de bloqueado nao gera uma linha de log por tentativa:
+# vira um aviso com a contagem, no maximo um a cada REPETIR_AVISO_IP segundos.
+REPETIR_AVISO_IP = 60           # segundos
 # Maior corpo de pedido aceito. O maior formulario legitimo (lista da tierlist,
 # ate 20 mil caracteres) fica bem abaixo; o Starlette le o formulario inteiro
 # na memoria, entao um envio gigante nao pode chegar ate ele.
@@ -503,6 +506,8 @@ def conferir_csrf(request: Request, csrf: str = Form("")) -> None:
 
 
 _FALHAS_IP: dict[str, collections.deque] = {}
+# origem -> (quando avisamos, tentativas recusadas desde entao)
+_AVISOS_IP: dict[str, tuple[float, int]] = {}
 _TRAVA_FALHAS = threading.Lock()
 
 
@@ -524,13 +529,46 @@ def _falhas_recentes(origem: str, agora: float) -> collections.deque:
     return falhas
 
 
+def _limpar_avisos(agora: float) -> None:
+    """Mesma ideia da poda de _FALHAS_IP: a tabela nao cresce sem fim."""
+    if len(_AVISOS_IP) <= 5000:
+        return
+    for origem, (quando, _) in list(_AVISOS_IP.items()):
+        if agora - quando > JANELA_FALHAS_IP:
+            del _AVISOS_IP[origem]
+
+
 def conferir_limite_de_falhas(request: Request) -> None:
+    """Recusa quem passou do limite, e registra isso sem inundar o log.
+
+    Toda tentativa e recusada, mas o log recebe no maximo um aviso por
+    REPETIR_AVISO_IP segundos: quem insiste depois de bloqueado aparece como
+    uma linha com a contagem, nao como mil linhas iguais.
+
+    O registro fica FORA de _TRAVA_FALHAS de proposito. Gravar no log custa
+    I/O, e dentro da trava isso seguraria todas as tentativas de login do
+    processo nesse meio tempo.
+    """
+    origem = origem_do_pedido(request)
+    agora = time.monotonic()
     with _TRAVA_FALHAS:
-        if len(_falhas_recentes(origem_do_pedido(request), time.monotonic())) >= FALHAS_POR_IP:
-            auditoria.registrar("LIMITE_IP", ip=origem_do_pedido(request),
-                                detalhe=f"{FALHAS_POR_IP} falhas na janela de {JANELA_FALHAS_IP}s")
-            raise HTTPException(429, "Muitas tentativas erradas deste aparelho. "
-                                     "Espere alguns minutos e tente de novo.")
+        if len(_falhas_recentes(origem, agora)) < FALHAS_POR_IP:
+            _AVISOS_IP.pop(origem, None)   # saiu do bloqueio: esquece o aviso
+            return
+        avisado_em, recusas = _AVISOS_IP.get(origem, (0.0, 0))
+        recusas += 1
+        primeiro = avisado_em == 0.0
+        avisar = primeiro or (agora - avisado_em) >= REPETIR_AVISO_IP
+        _AVISOS_IP[origem] = (agora, 0) if avisar else (avisado_em, recusas)
+        _limpar_avisos(agora)
+    if avisar:
+        auditoria.registrar(
+            "LIMITE_IP", ip=origem,
+            detalhe=(f"{FALHAS_POR_IP} falhas na janela de {JANELA_FALHAS_IP}s" if primeiro
+                     else f"ainda bloqueado: {recusas} tentativas recusadas "
+                          f"nos ultimos {REPETIR_AVISO_IP}s"))
+    raise HTTPException(429, "Muitas tentativas erradas deste aparelho. "
+                             "Espere alguns minutos e tente de novo.")
 
 
 def registrar_falha(request: Request) -> None:

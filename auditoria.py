@@ -56,10 +56,17 @@ LIMITE_CAMPO = 200
 # CHAVE
 # ═══════════════════════════════════════════════════════════════════════════════
 def _ler_chave() -> bytes | None:
+    """Chave do disco, ou None se ainda nao esta lá inteira.
+
+    O tamanho e conferido porque bytes.fromhex("") devolve b"" sem levantar
+    erro: quem perde a corrida do O_EXCL pode encontrar o arquivo criado e
+    ainda vazio, e aceitar isso daria uma chave de zero byte.
+    """
     try:
-        return bytes.fromhex(ARQUIVO_CHAVE.read_text(encoding="utf-8").strip())
-    except (FileNotFoundError, ValueError):
+        chave = bytes.fromhex(ARQUIVO_CHAVE.read_text(encoding="utf-8").strip())
+    except (FileNotFoundError, ValueError, OSError):
         return None
+    return chave if len(chave) == 32 else None
 
 
 def carregar_chave() -> bytes:
@@ -81,10 +88,12 @@ def carregar_chave() -> bytes:
         with os.fdopen(fd, "w", encoding="utf-8") as arquivo:
             arquivo.write(nova.hex())
         return nova
-    chave = _ler_chave()
-    if chave is None:
-        raise RuntimeError(f"auditoria: nao consegui ler a chave em {ARQUIVO_CHAVE}")
-    return chave
+    for _ in range(50):          # perdemos a corrida: o vencedor pode estar gravando
+        chave = _ler_chave()
+        if chave is not None:
+            return chave
+        time.sleep(0.01)
+    raise RuntimeError(f"auditoria: nao consegui ler a chave em {ARQUIVO_CHAVE}")
 
 
 CHAVE = carregar_chave()

@@ -162,15 +162,51 @@ TABELA = pontuacao.carregar_tabela()
 MELHORES = pontuacao.melhores_resultados(TABELA)
 
 
-def carregar_segredo() -> bytes:
-    """Chave dos tokens de formulario (CSRF). Criada na primeira execucao."""
+def _ler_segredo() -> bytes | None:
+    """Segredo do disco, ou None se ainda nao esta la inteiro.
+
+    O tamanho e conferido porque bytes.fromhex("") devolve b"" sem levantar
+    erro: quem perde a corrida do O_EXCL pode encontrar o arquivo criado e
+    ainda vazio, e aceitar isso daria um segredo de zero byte.
+    """
     try:
-        return bytes.fromhex(ARQUIVO_SEGREDO.read_text(encoding="utf-8").strip())
-    except (FileNotFoundError, ValueError):
-        segredo = secrets.token_bytes(32)
-        ARQUIVO_SEGREDO.parent.mkdir(parents=True, exist_ok=True)
-        ARQUIVO_SEGREDO.write_text(segredo.hex(), encoding="utf-8")
+        segredo = bytes.fromhex(ARQUIVO_SEGREDO.read_text(encoding="utf-8").strip())
+    except (FileNotFoundError, ValueError, OSError):
+        return None
+    return segredo if len(segredo) == 32 else None
+
+
+def carregar_segredo() -> bytes:
+    """Chave dos tokens de formulario (CSRF). Criada na primeira execucao.
+
+    O O_EXCL garante que, com varios processos subindo juntos, so um cria: os
+    outros recebem FileExistsError e leem o segredo que ficou no disco.
+
+    Sem isso, cada worker ficava com um segredo diferente em memoria pelo
+    resto da vida do processo. Como token_csrf() assina com ele, o formulario
+    entregue por um worker nao valia no outro: o atleta levaria "Formulario
+    expirado" em parte dos envios, e cada um geraria um CSRF_INVALIDO falso
+    no log de auditoria.
+    """
+    segredo = _ler_segredo()
+    if segredo is not None:
         return segredo
+    ARQUIVO_SEGREDO.parent.mkdir(parents=True, exist_ok=True)
+    novo = secrets.token_bytes(32)
+    try:
+        fd = os.open(ARQUIVO_SEGREDO, os.O_CREAT | os.O_EXCL | os.O_WRONLY)
+    except FileExistsError:
+        pass
+    else:
+        with os.fdopen(fd, "w", encoding="utf-8") as arquivo:
+            arquivo.write(novo.hex())
+        return novo
+    for _ in range(50):      # perdemos a corrida: o vencedor pode estar gravando
+        segredo = _ler_segredo()
+        if segredo is not None:
+            return segredo
+        time.sleep(0.01)
+    raise RuntimeError(f"nao consegui ler o segredo do CSRF em {ARQUIVO_SEGREDO}")
 
 
 SEGREDO = carregar_segredo()
